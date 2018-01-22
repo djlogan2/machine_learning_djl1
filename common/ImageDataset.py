@@ -1,8 +1,6 @@
 __author__ = 'david'
 
 import numpy as np
-from Tkinter import *
-import Image, ImageDraw
 
 
 class ImageDataset:
@@ -24,7 +22,6 @@ class ImageDataset:
     #
     # Virtual methods/properties
     #
-    # PILImage(row_data)
     # raw_image_data - an any-d array with records and attributes
     # label_data - a 1d array with #records of labels
     #
@@ -32,22 +29,12 @@ class ImageDataset:
     #
 
     @property
-    def PILImage(self):
-        data = self.RGBA # count
-        width = self.data.shape[0]
-        height = self.data.shape[1]
-        image1 = Image.new("RGBA", (width, height), (0,0,0,0))
-        draw = ImageDraw.Draw(image1)
-        draw.line([0, 25, 50, 25], (0,128,0))
-        image1.save('test.jpg')
-
-    @property
     def mean(self):
         try:
             return self._mean
         except AttributeError:
             self._mean = self.mean_without_bias
-            if self._include_bias == 1:
+            if self._include_bias == True:
                 self._mean = np.column_stack([self.mean_without_bias, [0]])
             else:
                 self._mean = self.mean_without_bias
@@ -70,16 +57,16 @@ class ImageDataset:
             rc = self.raw_image_data.shape[0]
             cc = np.prod(self.raw_image_data.shape[1:])
             self._image_data = np.array(self.raw_image_data,dtype=np.float32).reshape(rc, cc)
-            if self._zero_center == 1:
+            if self._zero_center == True:
                 self._image_data -= self.mean_without_bias.flatten()
             self._image_data /= 255.0
 
-            if self._include_bias == 1:
+            if self._include_bias == True:
                 self._image_data = np.column_stack([self.image_data, np.full((rc), 1)])
 
             return self._image_data
 
-    def random_batch(self, num_records):
+    def random_batch(self, num_records, one_hot=True):
 
         try:
             temp_array = self._combined_array
@@ -89,8 +76,9 @@ class ImageDataset:
         np.random.shuffle(temp_array)
         temp_array = temp_array[:num_records,:]
 
-        new_labels = np.array(temp_array[:, temp_array.shape[-1] - 1], dtype=np.uint32)
-        new_labels = np.eye(self._label_count)[new_labels]
+        new_labels = np.array(temp_array[:, temp_array.shape[-1] - 1], dtype=np.int32)
+        if one_hot == True:
+            new_labels = np.eye(self._label_count)[new_labels]
 
         new_data = np.delete(temp_array, temp_array.shape[-1] - 1, axis=1)
         return new_data, new_labels
@@ -132,7 +120,7 @@ class ImageDataset:
         if bias is not None:
             bias *= 255
 
-        if self._zero_center == 1:
+        if self._zero_center == True:
             array += self.mean_without_bias
             if bias is not None:
                 bias += 127
@@ -142,9 +130,7 @@ class ImageDataset:
         if bias is not None:
             bias = np.array(bias, dtype=np.uint8)
 
-        # how to handle this? - it needs to be in the custom class.
         newshape = [self._label_count] + list(self.raw_image_data.shape[1:])
         array = np.array(array).reshape(newshape)
-#        array = np.transpose(array, axes=(0,2,3,1))
 
         return np.array(array, dtype=np.uint8), bias

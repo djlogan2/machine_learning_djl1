@@ -10,7 +10,7 @@ from mnist import Datasets as mnist
 
 class DatasetTests(unittest.TestCase):
 
-    def loadMNIST(self, validation_percent=0, batch_percent=100, include_bias=1):
+    def loadMNIST(self, validation_percent=0, batch_percent=100, include_bias=True):
         mn = mnist.Datasets('/home/david/workspace/machine_learning/djl1/mnist_data', validation_percent=validation_percent, batch_percent=batch_percent, include_bias=include_bias)
         if validation_percent == 0:
             self.assertIsNone(mn.validation)
@@ -24,7 +24,6 @@ class DatasetTests(unittest.TestCase):
             data_records = 60000 - mn.validation.image_data.shape[0]
 
         if batch_percent == 100:
-            #xxx = mn.training.PILImage(0)
             self.assertEqual(mn.training.image_data.shape[0], data_records)
             self.assertEqual(mn.training.label_data.shape[0], data_records)
             data, labels = mn.training.next_batch
@@ -45,7 +44,7 @@ class DatasetTests(unittest.TestCase):
             self.assertTrue(np.array_equal(mn.training.image_data, all_data))
             self.assertTrue(np.array_equal(mn.training.label_data, all_labels))
 
-        if include_bias == 1:
+        if include_bias == True:
             self.assertEqual(mn.training.image_data.shape[-1], 785)
             self.assertEqual(mn.test.image_data.shape[-1], 785)
             if validation_percent != 0:
@@ -56,7 +55,7 @@ class DatasetTests(unittest.TestCase):
             if validation_percent != 0:
                 self.assertEqual(mn.validation.image_data.shape[-1], 784)
         
-    def loadCIFAR(self, validation_percent=0, batch_percent=100, include_bias=1):
+    def loadCIFAR(self, validation_percent=0, batch_percent=100, include_bias=True):
         cf = cifar.Datasets('/home/david/workspace/machine_learning/djl1/cifar_data',
                             validation_percent=validation_percent,
                             batch_percent=batch_percent,
@@ -94,7 +93,7 @@ class DatasetTests(unittest.TestCase):
             self.assertTrue(np.array_equal(cf.training.image_data, all_data))
             self.assertTrue(np.array_equal(cf.training.label_data, all_labels))
 
-        if include_bias == 1:
+        if include_bias == True:
             self.assertEqual(cf.training.image_data.shape[-1], 3073)
             self.assertEqual(cf.test.image_data.shape[-1], 3073)
             if validation_percent != 0:
@@ -107,25 +106,25 @@ class DatasetTests(unittest.TestCase):
 
     def test_CIFAR(self):
         self.loadCIFAR()
-        self.loadCIFAR(include_bias=0)
+        self.loadCIFAR(include_bias=False)
         self.loadCIFAR(batch_percent=10)
-        self.loadCIFAR(batch_percent=10, include_bias=0)
+        self.loadCIFAR(batch_percent=10, include_bias=False)
         self.loadCIFAR(validation_percent=10)
-        self.loadCIFAR(validation_percent=10, include_bias=0)
+        self.loadCIFAR(validation_percent=10, include_bias=False)
         self.loadCIFAR(validation_percent=10, batch_percent=10)
-        self.loadCIFAR(validation_percent=10, batch_percent=10, include_bias=0)
-        print 'done'
+        self.loadCIFAR(validation_percent=10, batch_percent=10, include_bias=False)
+        print('done')
 
     def test_MNIST(self):
         self.loadMNIST()
-        self.loadMNIST(include_bias=0)
+        self.loadMNIST(include_bias=False)
         self.loadMNIST(batch_percent=10)
-        self.loadMNIST(batch_percent=10, include_bias=0)
+        self.loadMNIST(batch_percent=10, include_bias=False)
         self.loadMNIST(validation_percent=10)
-        self.loadMNIST(validation_percent=10, include_bias=0)
+        self.loadMNIST(validation_percent=10, include_bias=False)
         self.loadMNIST(validation_percent=10, batch_percent=10)
-        self.loadMNIST(validation_percent=10, batch_percent=10, include_bias=0)
-        print 'done'
+        self.loadMNIST(validation_percent=10, batch_percent=10, include_bias=False)
+        print('done')
 
     def test_random_shuffle(self):
         id = []

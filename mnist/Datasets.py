@@ -1,12 +1,11 @@
 __author__ = 'david'
 
 from common import Datasets as da
-import Dataset
-import Labels
+from . import Dataset, Labels
 
 
 class Datasets(da.Datasets):
-    def __init__(self, dir, validation_percent=0, include_bias=1, zero_center=1):
+    def __init__(self, dir, validation_percent=0, include_bias=True, zero_center=True):
 
         self._labels = Labels.Labels()
         self._training = Dataset.Dataset(dir + '/train-images-idx3-ubyte', dir + '/train-labels-idx1-ubyte', self._labels.count, include_bias, zero_center)

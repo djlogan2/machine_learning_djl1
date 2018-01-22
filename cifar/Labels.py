@@ -1,7 +1,7 @@
 __author__ = 'david'
 
 from common import LabelDataset as ld
-import cPickle
+import pickle as cPickle
 import numpy as np
 
 #

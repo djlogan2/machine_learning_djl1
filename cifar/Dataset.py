@@ -2,7 +2,7 @@ __author__ = 'david'
 
 import numpy as np
 from common import ImageDataset as da
-import cPickle
+import pickle as cPickle
 
 #
 # raw_data:
@@ -17,9 +17,9 @@ class Dataset(da.ImageDataset):
     def __init__(self, file, label_counts, include_bias, which_labels, zero_center, training_mean=None):
         self.label_type = which_labels + '_labels'
         with open(file, 'rb') as fo:
-            self.raw_data = cPickle.load(fo)
-        self.raw_data = self.raw_data.reshape(self.raw_data.shape[0], 3, 32, 32)
-        self.raw_data = self.raw_data.transpose(axes=(0,2,3,1))
+            self.raw_data = cPickle.load(fo, encoding='latin1')
+            self.raw_data['data'] = self.raw_data['data'].reshape(self.raw_data['data'].shape[0], 3, 32, 32)
+        self.raw_data['data'] = self.raw_data['data'].transpose((0,2,3,1))
 
         da.ImageDataset.__init__(self, label_counts, include_bias, zero_center, training_mean=training_mean)
 
