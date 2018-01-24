@@ -16,7 +16,7 @@ class WriteImages:
             top = WriteImages.write_image(np.array(array), 'RGBA', type)
         else:
             raise Exception('Dont know how to write this shape')
-        top.save(tofile, 'jpeg')
+        top.save(tofile, 'png')
 
     @staticmethod
     def redimension(array, type):

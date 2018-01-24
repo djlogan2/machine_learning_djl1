@@ -41,6 +41,7 @@ class Dataset(da.ImageDataset):
             255,255,255,255,255,255,255,255,255,227,116,53,36,51,38,50,50,50,38,21,38,56,87,183,182,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,182,182,182,227,255,255,255,255,255,255,255,255,255,255,255,255,255
         ]
+        imagedata[:] = [255-x for x in imagedata] # Reverse all of the pixels
         if rgb:
             imagedata_r_only = imagedata + ([0] * (len(imagedata) * 2))
             imagedata_g_only = ([0] * len(imagedata)) + imagedata + ([0] * len(imagedata))
@@ -48,13 +49,17 @@ class Dataset(da.ImageDataset):
             imagedata = imagedata_r_only + imagedata_g_only + imagedata_b_only
             c = int(record_count / 3)
             imagedata = imagedata * c
-            imagedata = np.array(imagedata,dtype=np.uint8).reshape(c * 3, 3, 32, 32).transpose(0,2,3,1)
+            imagedata = np.array(imagedata,dtype=np.uint8).reshape(c * 3, 3, 32, 32) #.transpose(0,2,3,1)
             self._label_data = np.array([0,1,2] * c)
         else:
             imagedata = np.array(imagedata * record_count, dtype=np.uint8).reshape(record_count, 32, 32)
             self._label_data = np.array([0]*record_count)
         self._raw_image_data = imagedata
         da.ImageDataset.__init__(self, len(self._label_data), include_bias, zero_center, training_mean=training_mean)
+
+    @property
+    def rgb(self):
+        return self._rgb
 
     @property
     def raw_image_data(self):

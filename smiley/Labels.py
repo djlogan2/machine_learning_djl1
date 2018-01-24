@@ -9,4 +9,4 @@ class Labels(ld.LabelDataset):
 
     @property
     def strings(self):
-        return ['red', 'green', 'blue'] if self._rgb else ['smiley']
+        return np.array(['red', 'green', 'blue']) if self._rgb else np.array(['smiley'])
