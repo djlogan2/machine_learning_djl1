@@ -31,9 +31,9 @@ else:
     feature_columns = [f1, f2, f3]
 
 if which_data == 'mnist':
-    wi.WriteImages.write(da.training.raw_image_data, [], 'images.png')
+    wi.WriteImages.write(da.training.raw_image_data, [], which_data + '_images.png')
 else:
-    wi.WriteImages.write(da.training.raw_image_data.transpose(0, 2, 3, 1), [], 'images.png')
+    wi.WriteImages.write(da.training.raw_image_data.transpose(0, 2, 3, 1), [], which_data + '_images.png')
 
 def get_input_fn(dataset):
     def _input_fn():
@@ -63,11 +63,11 @@ def get_input_fn(dataset):
 train_input_fn = get_input_fn(da.training)
 eval_input_fn = get_input_fn(da.test)
 
-estimator = tf.contrib.learn.LinearClassifier(feature_columns=feature_columns, n_classes=da.label.count)
+estimator = tf.contrib.learn.LinearClassifier(feature_columns=feature_columns, n_classes=da.label.count, model_dir='/home/david/workspace/machine_learning/djl1/logs/' + which_data)
 
 if True:
     start = time.time()
-    estimator.fit(input_fn=train_input_fn, steps=1)
+    estimator.fit(input_fn=train_input_fn, steps=1000)
     end = time.time()
 else:
     data, labels = train_input_fn()
@@ -78,7 +78,7 @@ else:
 if which_data == 'mnist':
     p_weights = estimator.get_variable_value('linear/p/weight').reshape(28, 28, da.label.count).transpose(2, 0, 1)
     p_weights = ((p_weights * 127.5) + 127.5).astype(np.uint8)
-    wi.WriteImages.write(p_weights, [], 'p_weights.png')
+    wi.WriteImages.write(p_weights, [], which_data + '_p_weights.png')
 else:
     r_weights = estimator.get_variable_value('linear/r/weight').reshape(32,32,da.label.count).transpose(2,0,1)
     g_weights = estimator.get_variable_value('linear/g/weight').reshape(32,32,da.label.count).transpose(2,0,1)
@@ -88,9 +88,9 @@ else:
     g_weights = ((g_weights * 127.5) + 127.5).astype(np.uint8)
     b_weights = ((b_weights * 127.5) + 127.5).astype(np.uint8)
 
-    wi.WriteImages.write(r_weights, [], 'r_weights.png')
-    wi.WriteImages.write(g_weights, [], 'g_weights.png')
-    wi.WriteImages.write(b_weights, [], 'b_weights.png')
+    wi.WriteImages.write(r_weights, [], which_data + '_r_weights.png')
+    wi.WriteImages.write(g_weights, [], which_data + '_g_weights.png')
+    wi.WriteImages.write(b_weights, [], which_data + '_b_weights.png')
 
     #all = np.dstack((r_weights, g_weights, b_weights)).reshape(3, da.label.count, 32, 32).transpose(1,2,3,0)   # 3, lc, 32, 32
     #wi.WriteImages.write(all, [], 'all_weights.png')
