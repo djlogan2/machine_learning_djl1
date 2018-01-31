@@ -2,3 +2,4 @@ mnist_data
 cifar_data
 .idea
 *.png
+logs
