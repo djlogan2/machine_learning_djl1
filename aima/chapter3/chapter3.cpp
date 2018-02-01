@@ -11,7 +11,11 @@
 #include <unordered_map>
 #include <vector>
 
+//#define DELETE_CHILDREN
+
 #define BOARD_TYPE unsigned char
+#define max(a, b) (a > b ? a : b)
+#define min(a, b) (a < b ? a : b)
 
 typedef class _square {
   public:
@@ -64,12 +68,14 @@ typedef class _board {
     std::string dump() {
       std::ostringstream ss;
       for(int y = 0 ; y < _side ; y++) {
+        ss << '[';
         for(int x = 0 ; x < _side ; x++) {
           ss << (int)board_array[y * _side + x] << ',';
         };
-        ss << std::endl;
+        ss << ']';
+        //ss << std::endl;
       };
-      ss << "side=" << _side << ", zero=" << zero().tostring();
+      ss << ",side=" << _side << ", zero=" << zero().tostring();
       return ss.str();
     }
     std::string tostring() {std::string r((const char *)board_array, _side*_side*sizeof(BOARD_TYPE)); return r; }
@@ -82,10 +88,11 @@ typedef class _board {
 
 typedef class _state {
   public:
-    _state(Board *board, Square action, double current_cost, _state *parent);
+    _state(Board *board, Square action, _state *parent);
     ~_state();
     double cost();
     int depth();
+    int f;
     _state *parent() { return _parent; }
     Square *action() { return _action; }
     bool already_in_chain() {
@@ -94,14 +101,17 @@ typedef class _state {
     };
     Board *board();
     std::vector<_state *> children();
+#ifdef DELETE_CHILDREN
+    void delete_children();
+#endif
     std::string tostring(bool printchildren=false) {
       std::ostringstream ss;
       ss << "State: " << this << std::endl;
       ss << _board->dump() << std::endl;
       ss << "   Action=" << (_action ? _action->tostring() : "No action");
       ss << ", parent=" << _parent;
-      ss << ", current_cost=" << _current_cost;
-      ss << ", cost=" << cost() << '|' << std::endl;
+      ss << ", cost=" << cost();
+      ss << ", f=" << f << '|' << std::endl;
       if(printchildren) {
         std::vector<_state *> children = this->children();
         for(std::vector<_state *>::iterator child = children.begin() ; child != children.end(); ++child) {
@@ -117,7 +127,6 @@ typedef class _state {
     Square *_action;
     _state *_parent;
     std::vector<_state *> *_children;
-    double _current_cost;
     double _cost;
 
     bool already_in_chain(_state *other) {
@@ -151,7 +160,7 @@ _board::_board(int side, BOARD_TYPE *board_array) {
 }
 
 _board::~_board() {
-  delete board_array;
+  delete[] board_array;
 }
 
 bool _board::solvable() {
@@ -211,30 +220,38 @@ _board *_board::newBoard(Square from) {
   return new Board(_side, new_array);
 }
 
-_state::_state(Board *board, Square action, double current_cost, _state *parent) {
+_state::_state(Board *board, Square action, _state *parent) {
   this->_board = board;
   this->_parent = parent;
-  this->_action = (action.x == -1 ? NULL : new Square(action)); //(action ? new Square(action) : NULL);
-  this->_current_cost = current_cost;
+  this->_action = (action.x == -1 ? NULL : new Square(action));
   this->_cost = 0;
   this->_children = NULL;
+  this->f = 0;
 }
 
 _state::~_state() {
   delete _board;
   if(_action != NULL) delete _action;
+#ifdef DELETE_CHILDREN
+  delete_children();
+}
+
+void _state::delete_children() {
+#endif
   if(_children != NULL) {
     for(int x = 0 ; x < _children->size() ; x++)
       delete (*_children)[x];
     delete _children;
+    _children = NULL;
   };
 }
 
 double _state::cost() {
-  if(_cost > _current_cost || _action == NULL) return _cost;
-  _cost = _current_cost;
+  if(_cost > depth() || _action == NULL) return _cost;
+  _cost = depth();
   Board *b = this->_board->newBoard(*_action);
   _cost += b->manhattan_distance();
+  //std::cout << "::cost returning " << _cost << ", manhattan_distance=" << b->manhattan_distance() << std::endl << std::flush;
   delete b;
   return _cost;
 }
@@ -255,17 +272,15 @@ std::vector<_state *> _state::children() {
   _children = new std::vector<State *>();
   Square z = _board->zero();
 
-  if(z.x != 0) //transitions.push_back(Square(z.x-1, z.y));
-    _children->push_back(new State(_board->newBoard(Square(z.x-1, z.y)), Square(z.x-1, z.y), this->cost(), this));
-  if(z.x < _board->side() - 1) //transitions.push_back(Square(z.x+1, z.y));
-    _children->push_back(new State(_board->newBoard(Square(z.x+1, z.y)), Square(z.x+1, z.y), this->cost(), this));
-  if(z.y != 0) //transitions.push_back(Square(z.x, z.y-1));
-    _children->push_back(new State(_board->newBoard(Square(z.x, z.y-1)), Square(z.x, z.y-1), this->cost(), this));
-  if(z.y < _board->side() - 1) //transitions.push_back(Square(z.x, z.y+1));
-    _children->push_back(new State(_board->newBoard(Square(z.x, z.y+1)), Square(z.x, z.y+1), this->cost(), this));
+  if(z.x != 0)
+    _children->push_back(new State(_board->newBoard(Square(z.x-1, z.y)), Square(z.x-1, z.y), this));
+  if(z.x < _board->side() - 1)
+    _children->push_back(new State(_board->newBoard(Square(z.x+1, z.y)), Square(z.x+1, z.y), this));
+  if(z.y != 0)
+    _children->push_back(new State(_board->newBoard(Square(z.x, z.y-1)), Square(z.x, z.y-1), this));
+  if(z.y < _board->side() - 1)
+    _children->push_back(new State(_board->newBoard(Square(z.x, z.y+1)), Square(z.x, z.y+1), this));
 
-//  for(std::vector<Square>::iterator it = transitions.begin() ; it != transitions.end(); ++it)
-//    _children->push_back(new State(_board->newBoard(*it), &(*it), this->cost(), this));
   return *_children;
 }
 
@@ -281,7 +296,7 @@ void show_solution(State *node) {
     std::cout << node->board()->dump() << std::endl;
   } else {
     show_solution(node->parent());
-    std::cout << "Make move " << node->action()->tostring() << std::endl;
+    std::cout << "Make move " << node->depth() << ' ' << node->action()->tostring() << " : " << node->board()->dump() << std::endl;
   };
 }
 
@@ -292,7 +307,7 @@ void breadth_first() {
   BOARD_TYPE static_array[3*3] = {8,4,7,1,6,3,5,0,2};
   Board *b = new Board(3, static_array);
   std::cout << b->dump();
-  State *s = new State(b, NULL, 0, NULL);
+  State *s = new State(b, NULL, /*0, */ NULL);
   fifo_frontier.push(s);
   frontier_dict[s->board()->tostring()] = true;
 
@@ -361,7 +376,7 @@ void depth_first() {
   BOARD_TYPE static_array[3*3] = {8,4,7,1,6,3,5,0,2};
   Board *b = new Board(3, static_array);
   std::cout << b->dump();
-  State *s = new State(b, NULL, 0, NULL);
+  State *s = new State(b, NULL, /*0, */ NULL);
   depth_first(s);
 }
 
@@ -369,14 +384,18 @@ class {
   public:
     bool operator() (State *s1, State *s2) { return s1->cost() < s2->cost(); }
 } costsort;
+class {
+  public:
+    bool operator() (State *s1, State *s2) { return s1->f < s2->f; }
+} fsort;
 void a_star() {
   std::unordered_map<std::string, bool> explored;
   std::unordered_map<std::string, bool> frontier_dict;
   std::queue<State *> fifo_frontier;
   BOARD_TYPE static_array[3*3] = {8,4,7,1,6,3,5,0,2};
-  Board *b = new Board(3); //3, static_array);
+  Board *b = new Board(4); //3, static_array);
   std::cout << b->dump();
-  State *s = new State(b, NULL, 0, NULL);
+  State *s = new State(b, NULL, /*0, */ NULL);
   fifo_frontier.push(s);
   frontier_dict[s->board()->tostring()] = true;
 
@@ -410,13 +429,81 @@ void a_star() {
   };
 }
 
+int rbfs(State *s, int f_limit) {
+  static int max_depth = 0;
+  static int nodes_checked = 0;
+
+  if(s->depth() > max_depth) {
+    max_depth = s->depth();
+    std::cout << "Checking depth " << max_depth << " with limit " << f_limit << std::endl << std::flush;
+  };
+  if(++nodes_checked % 100000 == 0)
+    std::cout << "Checking " << nodes_checked << " nodes, current limit " << f_limit << ", current_depth " << s->depth() << ", max depth " << max_depth << std::endl << std::flush;
+  
+  if(s->board()->won()) {
+    show_solution(s);
+    return -2;
+  };
+
+  std::vector<State *> children = s->children();
+  if(children.empty()) return -1;
+
+
+  for(std::vector<State *>::iterator child = children.begin() ; child != children.end(); ++child) {
+    (*child)->f = max((*child)->cost(), s->f);
+  };
+
+  State *best = NULL;
+
+  while(true) {
+    std::vector<State *>::iterator child = children.begin();
+    std::sort(children.begin(), children.end(), fsort);
+
+    best = (*child);
+    int alternative = (*child)->f;
+
+    for(std::vector<State *>::iterator c = (child + 1) ; c != children.end(); ++c) {
+      if((*c)->f > best->f) {
+        alternative = ((*c)->f);
+        break;
+      };
+    };
+
+    if(best->f > f_limit) {
+      int v = best->f;
+#ifdef DELETE_CHILDREN
+      s->delete_children();
+#endif
+      return v;
+    };
+    best->f = rbfs(best, min(f_limit, alternative));
+    if(best->f < 0) {
+      int v = best->f;
+#ifdef DELETE_CHILDREN
+      s->delete_children();
+#endif
+      return v;
+    };
+  };
+}
+
+void rbfs() {
+  BOARD_TYPE static_array[3*3] = {7,3,2,8,5,4,1,0,6};
+  Board *b = new Board(4); //3, static_array);
+  std::cout << b->dump();
+  State *s = new State(b, NULL, /* 0, */ NULL);
+  rbfs(s, 999999999);
+  delete s;
+}
+
 int main() {
   std::srand(std::time(NULL));
   //std::cout << "Breadth first" << std::endl;
   //breadth_first();
   //std::cout << "Depth first" << std::endl;
   //depth_first();
-  std::cout << "A star" << std::endl;
-  a_star();
+  //std::cout << "A star" << std::endl;
+  //a_star();
+  rbfs();
   return 0;
 }
