@@ -416,7 +416,8 @@ void a_star() {
   std::unordered_map<std::string, bool> frontier_dict;
   std::queue<Node *> fifo_frontier;
   // 10 moves BOARD_TYPE static_array[4*4] = {1,3,6,4,5,2,8,11,9,10,7,12,13,14,15,0}; //{2,0,4,13,9,12,11,1,8,6,7,3,15,10,14,5};
-  BOARD_TYPE static_array[4*4] = {1,3,0,4,2,10,6,11,5,7,8,12,9,13,14,15};
+  //BOARD_TYPE static_array[4*4] = {1,3,0,4,2,10,6,11,5,7,8,12,9,13,14,15};
+  BOARD_TYPE *static_array = new BOARD_TYPE[4*4]{5,15,14,1,3,12,11,7,8,13,9,10,6,4,2,0};
   State *b = new State(4, static_array);
   std::cout << b->dump();
   Node *s = new Node(b, NULL, NULL);
@@ -515,7 +516,10 @@ int rbfs(Node *s, int f_limit) {
 }
 
 void rbfs() {
-  BOARD_TYPE static_array[3*3] = {7,3,2,8,5,4,1,0,6};
+  // 20 move solution
+  //BOARD_TYPE *static_array = new BOARD_TYPE[4*4]{1,3,0,4,2,10,6,11,5,7,8,12,9,13,14,15};
+  //State *b = new State(4, static_array);
+  //BOARD_TYPE static_array[3*3] = {7,3,2,8,5,4,1,0,6};
   State *b = new State(4); //3, static_array);
   std::cout << b->dump();
   Node *s = new Node(b, NULL, /* 0, */ NULL);

@@ -85,13 +85,8 @@ def run():
             return
         children = node.children
         for child in children:
-            try:
-                frontier[child._state.str]
-            except KeyError:
-                try:
-                    explored[child._state.str]
-                except KeyError:
-                    queue.append(child)
-                    frontier[child._state.str] = 1
+          if child._state.str not in frontier and child._state.str not in explored:
+            queue.append(child)
+            frontier[child._state.str] = 1
 
 run()

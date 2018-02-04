@@ -8,7 +8,6 @@ import time
 class State:
     def __init__(self, board, action, current_cost, parent):
         self._board = board
-        #self._board._board.flags.writeable = False
         self._action = action
         self._transitions = []
         self._zero = np.concatenate(np.where(board._board == 0))
@@ -51,7 +50,6 @@ class State:
             if b1[x] != b2[x]:
                 return False
         return True
-        #return np.array_equal(node.board, self.board)
 
     @property
     def won(self):
@@ -73,32 +71,11 @@ class State:
             self._transitions.append((self._zero[0], self._zero[1]-1))
         if self._zero[1] < self._board._side - 1:
             self._transitions.append((self._zero[0], self._zero[1]+1))
-#        self._removeDuplicateStates()
-#        p = self if self._parent != None else None
         self._children = []
         for transition in self._transitions:
             s = State(self._board.newBoard(transition[0], transition[1], self._zero[0], self._zero[1]), transition, self.cost, self)
             self._children.append(s)
-        #self._children = sorted(self._children, key=lambda s: s.cost)
         return self._children
-
-    # def _removeDuplicateStates(self):
-    #     if self._parent == None:
-    #         return
-    #     newTransitions = []
-    #     for transition in self._transitions:
-    #         newBoard = self._board.newBoard(transition[0], transition[1], self._zero[0], self._zero[1])
-    #         p = self._parent
-    #         iss = False
-    #         while p != None and p != True:
-    #             if np.array_equal(p._board._board, newBoard._board):
-    #                 iss = True
-    #                 p = None
-    #             else:
-    #                 p = p._parent
-    #         if not iss:
-    #             newTransitions.append(transition)
-    #     self._transitions = newTransitions
 
 class Board:
     @staticmethod
@@ -120,8 +97,6 @@ class Board:
         return board
 
     def newBoard(self, fy, fx, ty, tx):
-        if self._board[ty][tx] != 0:
-            raise Exception('To square must be zero')
         board = np.array(self._board)
         board[ty][tx] = board[fy][fx]
         board[fy][fx] = 0
@@ -176,7 +151,7 @@ def push_frontier(node):
 
 def pop_frontier():
     node = frontier.pop(0)
-    frontier_dict.pop(str(node.board))
+    del frontier_dict[str(node.board)]
     return node
 
 
@@ -186,19 +161,11 @@ def insert_frontier(node):
 
 
 def in_frontier(node):
-    try:
-        v = frontier_dict[str(node.board)]
-        return True
-    except KeyError:
-        return False
+    return str(node.board) in frontier_dict
 
 
 def in_explored(node):
-    try:
-        v = explored[str(node.board)]
-        return True
-    except KeyError:
-        return False
+    return str(node.board) in explored
 
 
 def show_solution(child):
@@ -211,8 +178,8 @@ def show_solution(child):
 
 #board = Board.initialboard(4)
 #board = Board.setboard([[7,3,0,1],[8,11,14,6],[9,15,2,12],[4,5,10,13]])
-#board = Board.setboard([[6,5,8],[1,0,4],[7,2,3]])
-board =Board.setboard([[10,3,14,1],[8,5,4,15],[2,6,0,11],[12,9,13,7]])
+board = Board.setboard([[6,5,8],[1,0,4],[7,2,3]])
+#board =Board.setboard([[10,3,14,1],[8,5,4,15],[2,6,0,11],[12,9,13,7]])
 
 def breadth_first():
     max_depth = 0
@@ -351,6 +318,6 @@ def a_star():
                 insert_frontier(child)
 start = time.clock()
 #depth_first()
-breadth_first()
-#a_star()
+#breadth_first()
+a_star()
 print(repr(time.clock()-start) + ' seconds')
