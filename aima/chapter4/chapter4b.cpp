@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <iostream>
 #include <queue>
@@ -97,7 +98,7 @@ class key_equal_func
 Map m;
 std::unordered_map<int, std::queue<int>> untried;
 std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> results;
-std::unordered_map<int, std::queue<int>> unbacktracked;
+std::unordered_map<int, std::vector<int>> unbacktracked;
 
 int previous_state = -1;
 int previous_action = -1;
@@ -142,8 +143,7 @@ std::string print_unbacktracked() {
   ss << "unbacktracked: [";
   for(auto iter : unbacktracked) {
     ss << '[' << iter.first << '=';
-    std::queue<int> temp = iter.second;
-    while(!temp.empty()) { ss << temp.front() << ','; temp.pop(); }
+    for(auto state : iter.second) ss << state << ',';
     ss << ']';
   };
   ss << ']';
@@ -165,9 +165,11 @@ int online_dfs_agent() {
   if(previous_state != -1) {
     results[{{previous_state, m.at()}}] = previous_action;
     results[{{m.at(), previous_state}}] = m.reverse_move(previous_action);
+    if(!std::any_of(unbacktracked[m.at()].begin(), unbacktracked[m.at()].end(), [](int s){return s == previous_state;}))
+      unbacktracked[m.at()].push_back(previous_state);
 //    std::queue<int>::iterator it = find(unbacktracked[m.at()].begin(), unbacktracked[m.at()].end(), previous_action);
 //    if(it == unbacktracked[m.at()].end())
-      unbacktracked[m.at()].push(previous_state);
+//      unbacktracked[m.at()].push(previous_state);
   };
 
   std::cout << print_untried() << std::endl << std::flush;
@@ -176,8 +178,8 @@ int online_dfs_agent() {
 
   if(!untried.size() || !untried[m.at()].size()) {
     if(!unbacktracked.size() || !unbacktracked[m.at()].size()) return STOP;
-    int undo_state = unbacktracked[m.at()].front();
-    unbacktracked[m.at()].pop();
+    int undo_state = unbacktracked[m.at()].back();
+    unbacktracked[m.at()].pop_back();
     //if(!unbacktracked[m.at()].size()) unbacktracked.erase(m.at());
     int undo_action = results[{{m.at(), undo_state}}];
     std::cout << "Backtracking from " << m.at() << " to " << undo_state << std::endl << std::flush;
