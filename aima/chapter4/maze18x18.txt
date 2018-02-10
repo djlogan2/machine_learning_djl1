@@ -1,0 +1,22 @@
+rd lrd lr lr  lr  lr  ld  d    d   rd  lr  lr ld  rd ld  rd  lrd ld
+ud ur  lr lrd ld  d   ud  ud   ur  lur lr  l  ur  lu ud  ud  ud  ud
+ur lr  ld ud  ud  ud  ud  ur   ld  rd  lr  lr lrd lr lur lu  ud  ud
+rd lr  lu u   ud  ur  lu  rd   lu  ud  rd  ld ud  d  rd  lr  lu  ud
+ur ld  d  rd  lur lr  ld  ud   rd  lu  ud  ud ud  ud ud  rd  lr  lu
+rd uld ud ud  rd  ld  ud  ud   ud  d   ud  ud ud  ur lu  ur  lr  ld
+ud ud  ur lu  ud  ud  ud  ud   ud  ur  lu  ud ud  rd ld  rd  l   ud
+ud ur  lr lr  lu  ud  ur  lu   ud  rd  lr  lu ud  ud ud  ur  lr  lud
+ud rd  ld r   ld  ur  lr  lr   lu  ur  ld  rd lu  ud ud  rd  ld  ud
+ur lu  ur lr  lu  rd  ld  rd   lr  ld  ud  ud r   lu ud  ud  ud  u
+rd ld  rd lr  lr  lu  ur  lurd l   ur  lu  ud rd  lr lu  ud  ur  ld
+ud ud  ud rd  lr  lr  ld  u    rd  lr  lr  lu ur  ld rd  lu  rd  lu
+ud ur  lu ud  rd  ld  ud  rd   lu  rd  ld  rd lrd lu ud  rd  lu  d
+ur lr  ld ud  ud  u   ur  lu   rd  lud ur  lu u   rd lud ur  lr  lud
+rd ld  ud ud  ur  lrd lr  lr   lu  u   rd  lr lr  lu ur  lrd l   ud
+ud urd lu ur  ld  ur  lr  lr   ld  rd  lu  rd ld  rd lr  lu  rd  lu
+ud u   rd ld  ur  lr  lrd ld   urd lu  rd  lu ud  ur ld  rd  lu  d
+ur lr  lu ur  lr  lr  lu  ur   lu  r   lur l  ur  lr lu  ur  lr  lu
+
+
+18x18 maze with start at top left, goal at bottom right. Image of this
+maze also in directory.
