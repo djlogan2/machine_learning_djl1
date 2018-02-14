@@ -1,0 +1,4 @@
+#ifndef MAPFUNCTIONS_H
+#define MAPFUNCTIONS_H
+
+#endif // MAPFUNCTIONS_H
