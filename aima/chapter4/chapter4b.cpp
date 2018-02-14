@@ -139,6 +139,7 @@ std::string dir(int action) {
     case LEFT: return "LEFT";
     case RIGHT: return "RIGHT";
   };
+  return "";
 }
 
 std::string print_untried() {
@@ -228,6 +229,7 @@ std::unordered_map<int, int> H;
 std::unordered_map<int, std::vector<int>> action_list;
 
 int lrta_cost(int orig_state, int action, int new_state) {
+  return 0;
 }
 
 int lrta_star() {
@@ -245,26 +247,26 @@ int lrta_star() {
   if(previous_state != -1) {
     int cost = std::numeric_limits<int>::max();
     results[{{previous_state, m.at()}}] = previous_action;
-    int cost;
     for(auto action : action_list[previous_state]) {
       int cost_one = lrta_cost(previous_state, action, m.at());
       if(cost > cost_one) cost = cost_one;
     };
     //H[previous_state] = std::min(lrtacost);
   };
+  return 0;
 };
 
 int main() {
-  //int action = online_dfs_agent();
-  int action = lrta_star();
+  int action = online_dfs_agent();
+  //int action = lrta_star();
   while(action != STOP) {
     previous_state = m.at();
     previous_action = action;
     std::cout << "Making move #" << m.moves() << ' ' << dir(action) << " from " << m.at();
     m.move(action);
     std::cout << " to " << m.at() << std::endl << std::endl << std::flush;
-    //action = online_dfs_agent();
-    action = lrta_star();
+    action = online_dfs_agent();
+    //action = lrta_star();
   };
   return 0;
 }

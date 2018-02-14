@@ -25,10 +25,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    map.cpp \
+    onlinedfs.cpp \
+    lrtastar.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    map.h \
+    onlinedfs.h \
+    ai.h \
+    mapfunctions.h \
+    lrtastar.h
 
 FORMS += \
         mainwindow.ui
