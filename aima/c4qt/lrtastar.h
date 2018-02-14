@@ -4,6 +4,7 @@
 #include "ai.h"
 #include "map.h"
 
+#include <ostream>
 #include <unordered_map>
 #include <vector>
 
@@ -11,6 +12,7 @@ struct NodeMove {
     NodeMove(int state, int move) { this->result_state = state ; this->move = move; }
     int result_state;
     int move;
+    friend std::ostream& operator<<(std::ostream &os, const NodeMove &nm) { os << "NodeMove(result_state=" << nm.result_state << ", move=" << Debug::d(nm.move) << ')'; return os; }
 };
 
 class Node {
@@ -26,7 +28,13 @@ public:
     std::vector<int> availablestates();
     int action(int towhichstate);
     Node &operator=(const Node& other) { this->_state = other._state ; this->_cost = other._cost; return *this; }
-    void add_to_states(int width, int add, bool addrow);
+    void add_to_states(int oldwidth, int add, bool userow);
+    friend std::ostream& operator<<(std::ostream &os, const Node &n) {
+      os << "Node(_state=" << n._state << ", _cost=" << n._cost << ", resultstates=[";
+      for(auto nm : n.resultstates) os << nm;
+      os << "])";
+      return os;
+    }
 protected:
     int _state;
     int _cost; // Number of moves to the goal
@@ -49,9 +57,11 @@ protected:
     int height = 1;
     Map *m;
 
-    void add_to_nodes(int width, int add, bool addrow);
+    void add_to_nodes(int oldwidth, int add, bool userow);
+
     int minimum_cost(int whichstate);
     int minimum_cost_action(int whichstate);
+    void update_scores(int previous_state, int state, int score);
 };
 
 #endif // LRTASTAR_H

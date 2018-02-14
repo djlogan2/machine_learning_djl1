@@ -1,5 +1,6 @@
 #include "onlinedfs.h"
 
+#include <algorithm>
 #include <iostream>
 
 OnlineDFS::OnlineDFS(Map *m)
