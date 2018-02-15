@@ -8,6 +8,7 @@ std::vector<int> Node::availablestates()
     std::vector<int> ret;
     for(auto nm : resultstates)
         ret.push_back(nm.result_state);
+    std::random_shuffle(ret.begin(), ret.end());
     return ret;
 }
 

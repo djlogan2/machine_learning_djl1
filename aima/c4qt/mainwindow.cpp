@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     previous_state = m._at();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(on_pushButton_clicked()));
-    timer->start(10);
+    timer->start(100);
 }
 
 MainWindow::~MainWindow()
