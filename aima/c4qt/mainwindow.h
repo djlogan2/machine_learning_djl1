@@ -2,15 +2,14 @@
 #define MAINWINDOW_H
 
 #include "ai.h"
-#include "map.h"
-#include "mapfunctions.h"
+#include "map.h"          // for Map
+#include "mapfunctions.h" // for hashing_func, key_equal_func
+
+#include <QMainWindow>    // for QMainWindow
 
 #include <unordered_map>
 
-#include <QMainWindow>
-
 namespace Ui {
-
 class SquareWidget : public QWidget {
 public:
     SquareWidget(Map *m, std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount, int row, int col);

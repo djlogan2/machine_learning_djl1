@@ -1,3 +1,5 @@
+#include "ai.h"   // for AI
+#include "map.h"  // for Map (ptr only), DIRECTION
 #include "onlinedfs.h"
 
 #include <algorithm>
@@ -58,7 +60,7 @@ int OnlineDFS::nextaction() {
     //
     int undo_state = unbacktracked[m->_at()].back();
     unbacktracked[m->_at()].pop_back();
-    int undo_action = results[{{m->_at(), undo_state}}];
+    DIRECTION undo_action = results[{{m->_at(), undo_state}}];
     std::cout << "We have no place to go, backtracking" << std::endl << std::flush;
     previous_state = m->_at();
     previous_action = undo_action;
@@ -67,7 +69,7 @@ int OnlineDFS::nextaction() {
       //
       // We have an untried move, so let's try that
       //
-    int action = untried[m->_at()].front();
+    DIRECTION action = untried[m->_at()].front();
     untried[m->_at()].erase(untried[m->_at()].begin());
     std::cout << "Trying untried move " << (action ==STOP ? "STOP" : (action == UP ? "UP" : (action == DOWN ? "DOWN" : (action == LEFT ? "LEFT" : "RIGHT")))) << std::endl << std::flush;;
     previous_state = m->_at();

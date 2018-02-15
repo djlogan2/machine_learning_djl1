@@ -1,7 +1,6 @@
-#include <iostream>
-
-#include "mainwindow.h"
-#include <QApplication>
+#include <cstdlib>         // for srand, NULL
+#include "mainwindow.h"    // for MainWindow
+#include <QApplication>    // for QApplication
 
 int main(int argc, char *argv[])
 {

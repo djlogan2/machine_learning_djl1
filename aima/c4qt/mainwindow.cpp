@@ -1,9 +1,6 @@
-#include "onlinedfs.h"
 #include "lrtastar.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include <iostream>
 
 #include <QPainter>
 #include <QPen>
@@ -85,7 +82,7 @@ void Ui::SquareWidget::paintEvent(QPaintEvent*) {
 
 void MainWindow::on_pushButton_clicked()
 {
-    int action = ai->nextaction(m.available_actions());
+    DIRECTION action = ai->nextaction(m.available_actions());
     std::cout << "Action is " << (action ==STOP ? "STOP" : (action == UP ? "UP" : (action == DOWN ? "DOWN" : (action == LEFT ? "LEFT" : "RIGHT")))) << std::endl << std::flush;
     if(action == STOP) return;
     m.move(action);

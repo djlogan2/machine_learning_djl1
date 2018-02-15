@@ -1,6 +1,8 @@
 #include "node.h"
 
-int add_to_offset(int offset, int where, int howmany, int width) {
+#include <algorithm>
+
+int add_to_offset(int offset, DIRECTION where, int howmany, int width) {
     switch(where) {
     case UP:
         return offset+howmany*width;
@@ -13,7 +15,7 @@ int add_to_offset(int offset, int where, int howmany, int width) {
     };
 }
 
-void Node::add_to_states(int where, int howmany, int width) {
+void Node::add_to_states(DIRECTION where, int howmany, int width) {
     _state = add_to_offset(_state, where, howmany, width);
     std::transform(resultstates.begin(), resultstates.end(), resultstates.begin(),
        [where, howmany, width](NodeMove nm) -> NodeMove {
@@ -21,7 +23,7 @@ void Node::add_to_states(int where, int howmany, int width) {
      });
 }
 
-int Node::action(int towhichstate) {
+DIRECTION Node::action(int towhichstate) {
     auto nodemoveptr = std::find_if(std::begin(resultstates), std::end(resultstates), [towhichstate](NodeMove nm) {return nm.result_state==towhichstate;});
     if(nodemoveptr != resultstates.end())
       return nodemoveptr->move;
@@ -30,12 +32,15 @@ int Node::action(int towhichstate) {
     };
 }
 
-Node::Node(int width, int state, int cost, std::vector<int> legalmoves) {
+Node::Node(int width, int state, int cost, std::vector<DIRECTION> legalmoves) {
     this->_state = state ;
     this->_cost = cost;
     for(auto move : legalmoves) {
         int newstate = state;
         switch(move) {
+        case STOP:
+        case TELEPORT:
+            throw "We should not have this move!";
         case UP:
             newstate -= width;
             break;

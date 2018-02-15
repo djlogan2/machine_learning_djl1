@@ -1,17 +1,20 @@
 #include "map.h"
+#include <cstdlib>  // for rand
 
-std::vector<int> Map::available_actions() const {
-  std::vector<int> ret;
+std::vector<DIRECTION> Map::available_actions() const {
+  std::vector<DIRECTION> ret;
   for(int x = 8 ; x != 0 ; x >>= 1) {
     if(map[current_location] & x)
-      ret.push_back(x);
+      ret.push_back((DIRECTION)x);
   };
   return ret;
 }
 
 Map::Map() {
   _moves = 0;
-  current_location = 1849;
+  do {
+    current_location = std::rand() % (50*50);
+  } while(current_location == goal);
   goal = 350;
   _width = 50;
   map = {{RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT+DOWN,LEFT+DOWN,RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT,LEFT+RIGHT+DOWN,LEFT+DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT,RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+DOWN,DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+DOWN,
@@ -92,7 +95,7 @@ Map::Map() {
   */
 }
 
-int Map::reverse_move(int move) {
+DIRECTION Map::reverse_move(DIRECTION move) {
   switch(move) {
     default:
       throw "Invalid move";
@@ -105,14 +108,13 @@ int Map::reverse_move(int move) {
     case RIGHT:
       return LEFT;
   };
-  return current_location;
 };
 
 int Map::moves(int row, int col) {
     return map[row*_width + col];
 }
 
-int Map::move(int _move) {
+int Map::move(DIRECTION _move) {
   if(_move == TELEPORT && current_location == goal) {
     current_location = std::rand() % (50*50);
     return current_location;
