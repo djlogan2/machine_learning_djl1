@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     previous_state = m._at();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(on_pushButton_clicked()));
-    timer->start(100);
+    timer->start(10);
 }
 
 MainWindow::~MainWindow()
@@ -38,6 +38,10 @@ Ui::SquareWidget::SquareWidget(Map *m, std::unordered_map<std::array<int, 2>, in
     this->hitcount = hitcount;
     this->row = row;
     this->col = col;
+    QPalette pal = palette();
+    pal.setColor(QPalette::Background, Qt::white);
+    setAutoFillBackground(true);
+    setPalette(pal);
 }
 
 void Ui::SquareWidget::redraw_if(int current_location) {
@@ -49,7 +53,10 @@ void Ui::SquareWidget::redraw_if(int current_location) {
 void Ui::SquareWidget::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     QRect r = this->rect();
-    QColor bg(255,0,0,10*(*hitcount)[{{row,col}}]);
+    int a = (*hitcount)[{{row,col}}];
+    if(a) a += 10;
+    a = (a < 256 ? a : 255);
+    QColor bg(255,0,0,a);
     QBrush br(bg);
     painter.setBrush(br);
     painter.fillRect(r, br);

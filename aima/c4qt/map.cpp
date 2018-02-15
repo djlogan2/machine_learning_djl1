@@ -113,6 +113,10 @@ int Map::moves(int row, int col) {
 }
 
 int Map::move(int _move) {
+  if(_move == TELEPORT && current_location == goal) {
+    current_location = std::rand() % (50*50);
+    return current_location;
+  };
   switch(map[current_location] & _move) {
     case STOP:
       throw "Invalid move";

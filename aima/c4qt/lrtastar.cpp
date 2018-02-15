@@ -5,70 +5,9 @@
 #include <iostream>
 #include <stdexcept>
 
-std::vector<int> Node::availablestates()
-{
-    std::vector<int> ret;
-    for(auto nm : resultstates)
-        ret.push_back(nm.result_state);
-    std::random_shuffle(ret.begin(), ret.end());
-    return ret;
-}
-
-int Node::action(int towhichstate) {
-    auto nodemoveptr = std::find_if(std::begin(resultstates), std::end(resultstates), [towhichstate](NodeMove nm) {return nm.result_state==towhichstate;});
-    if(nodemoveptr != resultstates.end())
-      return nodemoveptr->move;
-    else {
-      return STOP;
-    };
-}
-
-Node::Node(int width, int state, int cost, std::vector<int> legalmoves) {
-    this->_state = state ;
-    this->_cost = cost;
-    for(auto move : legalmoves) {
-        int newstate = state;
-        switch(move) {
-        case UP:
-            newstate -= width;
-            break;
-        case DOWN:
-            newstate += width;
-            break;
-        case LEFT:
-            newstate--;
-            break;
-        case RIGHT:
-            newstate++;
-            break;
-        }
-        resultstates.push_back(NodeMove(newstate, move));
-    }
-}
 LRTAStar::LRTAStar(Map *m)
 {
     this->m = m;
-}
-
-#define ADJUST(V, OLDWIDTH, ADD, USEROW) (V+(USEROW?V/OLDWIDTH:0)+ADD)
-
-void Node::add_to_states(int oldwidth, int add, bool userow) {
-    _state = ADJUST(_state, oldwidth, add, userow);
-    std::transform(resultstates.begin(), resultstates.end(), resultstates.begin(),
-       [oldwidth, add, userow](NodeMove nm) -> NodeMove {
-        return NodeMove(ADJUST(nm.result_state, oldwidth, add, userow), nm.move);
-     });
-}
-
-void LRTAStar::add_to_nodes(int oldwidth, int add, bool userow) {
-    std::unordered_map<int, Node> new_nodes;
-    for(auto node : current_nodes) {
-        node.second.add_to_states(oldwidth, add, userow);
-        new_nodes.emplace(node.second.state(), node.second);
-    }
-    current_nodes = new_nodes;
-    if(previous_state != -1) previous_state = ADJUST(previous_state, oldwidth, add, userow);
-    if(goal != -1) goal = ADJUST(goal, oldwidth, add, userow);
 }
 
 int LRTAStar::minimum_cost(int whichstate) {
@@ -107,19 +46,20 @@ void LRTAStar::update_scores(int previous_state, int state, int score)
   };
 }
 
+//void LRTAStar::merge_maps() {
+//    if(known_width < width) {
+//        known_
+//    }
+//}
+
 int LRTAStar::nextaction(std::vector<int> legalmoves) {
-    //
-    // If we won, blow out of here
-    //
   if(m->won()) {
-      goal = current_state();
+      current_nodes.goal = current_state();
+      known_nodes = current_nodes;
+      dont_know_where_we_are();
       //update_scores(-1, goal, 0); This is illegal in LRTAStar. LRTAStar is supposed to converge on accurate costs over repeated runs. Let's see how it works!
       std::cout << "We won!" << std::endl << std::flush;
       std::cout << "Goal is at " << current_state() << std::endl << std::flush;
-      for(auto it = current_nodes.begin() ; it != current_nodes.end() ; ++it) {
-        std::cout << it->second<< std::endl;
-      };
-      std::cout << std::flush;
     return TELEPORT;
   };
 
@@ -130,24 +70,21 @@ int LRTAStar::nextaction(std::vector<int> legalmoves) {
 
   if(std::find(legalmoves.begin(), legalmoves.end(), UP) != legalmoves.end() && current_r == 0) {
       current_r++;
-      height++;
-      add_to_nodes(width, width, false);
+      current_nodes.add_to_nodes(UP, 1);
   };
   if(std::find(legalmoves.begin(), legalmoves.end(), LEFT) != legalmoves.end() && current_c == 0) {
       current_c++;
-      add_to_nodes(width, 1, true);
-      width++;
+      current_nodes.add_to_nodes(LEFT, 1);
   };
-  if(std::find(legalmoves.begin(), legalmoves.end(), RIGHT) != legalmoves.end() && (current_c+1) == width) {
-      add_to_nodes(width, 0, true);
-      width++;
+  if(std::find(legalmoves.begin(), legalmoves.end(), RIGHT) != legalmoves.end() && (current_c+1) == current_nodes.width) {
+      current_nodes.add_to_nodes(RIGHT, 1);
   };
-  if(std::find(legalmoves.begin(), legalmoves.end(), DOWN) != legalmoves.end() && (current_r+1) == height) {
-      height++;
+  if(std::find(legalmoves.begin(), legalmoves.end(), DOWN) != legalmoves.end() && (current_r+1) == current_nodes.height) {
+      current_nodes.add_to_nodes(DOWN, 1);
   };
 
   if(current_nodes.find(current_state()) == current_nodes.end()) {
-      current_nodes.emplace(current_state(), Node(width, current_state(), 1, legalmoves)); // We use a cost of 1 because we know this isn't the goal node, so we assume the goal is one step away
+      current_nodes.emplace(current_state(), Node(current_nodes.width, current_state(), 1, legalmoves)); // We use a cost of 1 because we know this isn't the goal node, so we assume the goal is one step away
   }
 
   if(previous_state != -1) {
