@@ -1,7 +1,9 @@
 #include "lrtastar.h"
 
 #include <algorithm>
+#include <exception>
 #include <iostream>
+#include <stdexcept>
 
 std::vector<int> Node::availablestates()
 {
@@ -53,7 +55,7 @@ LRTAStar::LRTAStar(Map *m)
 void Node::add_to_states(int oldwidth, int add, bool userow) {
     _state = ADJUST(_state, oldwidth, add, userow);
     std::transform(resultstates.begin(), resultstates.end(), resultstates.begin(),
-       [oldwidth, add, userow](NodeMove nm) -> NodeMove { 
+       [oldwidth, add, userow](NodeMove nm) -> NodeMove {
         return NodeMove(ADJUST(nm.result_state, oldwidth, add, userow), nm.move);
      });
 }
@@ -111,7 +113,7 @@ int LRTAStar::nextaction(std::vector<int> legalmoves) {
     //
   if(m->won()) {
       goal = current_state();
-      update_scores(-1, goal, 0);
+      //update_scores(-1, goal, 0); This is illegal in LRTAStar. LRTAStar is supposed to converge on accurate costs over repeated runs. Let's see how it works!
       std::cout << "We won!" << std::endl << std::flush;
       std::cout << "Goal is at " << current_state() << std::endl << std::flush;
       for(auto it = current_nodes.begin() ; it != current_nodes.end() ; ++it) {

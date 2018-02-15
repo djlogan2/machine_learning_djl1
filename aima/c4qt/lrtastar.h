@@ -17,9 +17,11 @@ struct NodeMove {
 
 class Node {
 public:
-    //Node() { this->state = std::numeric_limits<int>::max(); this->_cost = std::numeric_limits<int>::max(); }
-    Node(const Node &other) { this->_state = other._state ; this->_cost = other._cost; resultstates = other.resultstates; }
-    //Node(int state) { this->state = state ; this->_cost = 0; }
+    Node(const Node &other) {
+      this->_state = other._state ;
+      this->_cost = other._cost;
+      resultstates = other.resultstates;
+    }
     Node(int width, int state, int cost, std::vector<int> legalmoves);
     int cost() { return _cost; }
     void cost(int value) { _cost = value; }
@@ -27,7 +29,7 @@ public:
     void addMove(int move, int newstate) { resultstates.push_back(NodeMove(newstate, move)); }
     std::vector<int> availablestates();
     int action(int towhichstate);
-    Node &operator=(const Node& other) { this->_state = other._state ; this->_cost = other._cost; return *this; }
+    Node &operator=(const Node& other) { this->_state = other._state ; this->_cost = other._cost; this->resultstates = other.resultstates; return *this; }
     void add_to_states(int oldwidth, int add, bool userow);
     friend std::ostream& operator<<(std::ostream &os, const Node &n) {
       os << "Node(_state=" << n._state << ", _cost=" << n._cost << ", resultstates=[";
