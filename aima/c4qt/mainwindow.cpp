@@ -18,7 +18,11 @@ MainWindow::MainWindow(QWidget *parent) :
         for(int c = 0 ; c < m.width() ; c++)
             ui->gridLayout->addWidget(new Ui::SquareWidget(&m, &hitcount, r, c), r, c);
     //ai = new OnlineDFS(&m);
-    ai = new LRTAStar(&m);
+    ai = new LRTAStar();
+    //answers = m.generate_scores();
+    //for(auto it = answers.begin() ; it != answers.end() ; ++it)
+    //  std::cout << it->second << std::endl;
+    //std::cout << std::flush;
     previous_state = m._at();
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(on_pushButton_clicked()));
@@ -82,14 +86,14 @@ void Ui::SquareWidget::paintEvent(QPaintEvent*) {
 
 void MainWindow::on_pushButton_clicked()
 {
+  if(m.won())
+    ai->atgoal(m.available_actions());
     DIRECTION action = ai->nextaction(m.available_actions());
-    std::cout << "Action is " << (action ==STOP ? "STOP" : (action == UP ? "UP" : (action == DOWN ? "DOWN" : (action == LEFT ? "LEFT" : "RIGHT")))) << std::endl << std::flush;
     if(action == STOP) return;
     m.move(action);
     int r = m._at() / m.width();
     int c = m._at() % m.width();
     hitcount[{{r,c}}]++;
-    std::cout << "MAP: Moved " << Debug::d(action) << " from " << previous_state << " to " << m._at() << std::endl << std::flush;
     QListIterator<QObject *> i(ui->centralWidget->children());
     while(i.hasNext()) {
         if(Ui::SquareWidget *sw = dynamic_cast<Ui::SquareWidget *>(i.next())) {
@@ -99,3 +103,4 @@ void MainWindow::on_pushButton_clicked()
     }
     previous_state = m._at();
 }
+

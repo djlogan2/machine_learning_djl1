@@ -29,9 +29,7 @@ SOURCES += \
         mainwindow.cpp \
     map.cpp \
     onlinedfs.cpp \
-    lrtastar.cpp \
-    nodemap.cpp \
-    node.cpp
+    lrtastar.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -40,8 +38,8 @@ HEADERS += \
     ai.h \
     mapfunctions.h \
     lrtastar.h \
-    nodemap.h \
-    node.h
+    direction.h \
+    debug.h
 
 FORMS += \
         mainwindow.ui

@@ -35,15 +35,15 @@ int OnlineDFS::nextaction() {
   //
   if(previous_state != -1) {
       results[{{previous_state, m->_at()}}] = previous_action;
-      results[{{m->_at(), previous_state}}] = m->reverse_move(previous_action);
+      results[{{m->_at(), previous_state}}] = reverse_move(previous_action);
       if(!std::any_of(unbacktracked[m->_at()].begin(), unbacktracked[m->_at()].end(), [this](int s){return s == previous_state;}))
         unbacktracked[m->_at()].insert(unbacktracked[m->_at()].begin(), previous_state);
       //
       // Remove the "untried" move that just goes back to where we were
       //
-      auto reverse_move = std::find(std::begin(untried[m->_at()]), std::end(untried[m->_at()]), m->reverse_move(previous_action));
-      if(reverse_move != std::end(untried[m->_at()]))
-          untried[m->_at()].erase(reverse_move);
+      auto r_move = std::find(std::begin(untried[m->_at()]), std::end(untried[m->_at()]), reverse_move(previous_action));
+      if(r_move != std::end(untried[m->_at()]))
+          untried[m->_at()].erase(r_move);
   };
 
   //

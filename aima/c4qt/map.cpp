@@ -1,22 +1,25 @@
 #include "map.h"
 #include <cstdlib>  // for rand
 
-std::vector<DIRECTION> Map::available_actions() const {
+std::vector<DIRECTION> Map::available_actions(int atstate) const {
   std::vector<DIRECTION> ret;
   for(int x = 8 ; x != 0 ; x >>= 1) {
-    if(map[current_location] & x)
+    if(map[atstate] & x)
       ret.push_back((DIRECTION)x);
   };
+//  if(atstate == goal)
+//    ret.push_back(TELEPORT);
   return ret;
 }
 
 Map::Map() {
-  _moves = 0;
+  //_moves = 0;
+  //goal = 350;
+  _width = 50;
+  goal = std::rand() % (50*50);
   do {
     current_location = std::rand() % (50*50);
   } while(current_location == goal);
-  goal = 350;
-  _width = 50;
   map = {{RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT+DOWN,LEFT+DOWN,RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT,LEFT+RIGHT+DOWN,LEFT+DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT,RIGHT,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+DOWN,DOWN,DOWN,RIGHT+DOWN,LEFT+RIGHT,LEFT+DOWN,RIGHT+DOWN,LEFT+DOWN,
   UP+DOWN,RIGHT+DOWN,LEFT+DOWN,UP+DOWN,UP+DOWN,UP+RIGHT+DOWN,LEFT,UP+RIGHT+DOWN,LEFT+UP+RIGHT,LEFT+UP+DOWN,UP+RIGHT,LEFT+DOWN,DOWN,UP,UP,RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT+RIGHT+DOWN,LEFT,UP+RIGHT+DOWN,LEFT+DOWN,UP+RIGHT,LEFT+DOWN,UP+RIGHT,LEFT+DOWN,UP+DOWN,UP+RIGHT,LEFT+UP+RIGHT,LEFT+UP,UP+RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+UP+DOWN,UP,UP+RIGHT+DOWN,LEFT+DOWN,RIGHT,LEFT+UP+DOWN,DOWN,UP+RIGHT,LEFT+UP,UP+DOWN,UP+RIGHT+DOWN,LEFT+UP+RIGHT,LEFT+UP,RIGHT+DOWN,LEFT+UP,UP+DOWN,UP,
   UP+DOWN,UP+DOWN,UP+RIGHT,LEFT+UP,UP+DOWN,UP+RIGHT+DOWN,LEFT,UP,DOWN,UP,RIGHT+DOWN,LEFT+UP+RIGHT,LEFT+UP+RIGHT+DOWN,LEFT+DOWN,RIGHT,LEFT+UP,UP,UP+DOWN,RIGHT,LEFT+UP+DOWN,UP+RIGHT,LEFT,UP+RIGHT,LEFT+DOWN,UP+RIGHT+DOWN,LEFT+UP+RIGHT+DOWN,LEFT,RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT+DOWN,LEFT+RIGHT,LEFT+RIGHT,LEFT+RIGHT,LEFT+UP+RIGHT,LEFT+DOWN,UP,UP+RIGHT+DOWN,LEFT,UP+RIGHT+DOWN,LEFT+UP,RIGHT,LEFT+RIGHT+DOWN,LEFT+UP+RIGHT,LEFT+UP+RIGHT+DOWN,LEFT,RIGHT+DOWN,LEFT+UP+RIGHT,LEFT+DOWN,UP+RIGHT,LEFT+DOWN,
@@ -95,25 +98,6 @@ Map::Map() {
   */
 }
 
-DIRECTION Map::reverse_move(DIRECTION move) {
-  switch(move) {
-    default:
-      throw "Invalid move";
-    case UP:
-      return DOWN;
-    case DOWN:
-      return UP;
-    case LEFT:
-      return RIGHT;
-    case RIGHT:
-      return LEFT;
-  };
-};
-
-int Map::moves(int row, int col) {
-    return map[row*_width + col];
-}
-
 int Map::move(DIRECTION _move) {
   if(_move == TELEPORT && current_location == goal) {
     current_location = std::rand() % (50*50);
@@ -135,6 +119,61 @@ int Map::move(DIRECTION _move) {
       current_location += 1;
       break;
   };
-  _moves++;
+  //_moves++;
   return current_location;
 };
+
+/*
+int Map::tostate(int fromstate, DIRECTION _move) {
+  switch(map[fromstate] & _move) {
+    case STOP:
+      throw "Invalid move";
+    case UP:
+      fromstate -= _width;
+      break;
+    case DOWN:
+      fromstate += _width;
+      break;
+    case LEFT:
+      fromstate -= 1;
+      break;
+    case RIGHT:
+      fromstate += 1;
+      break;
+  };
+  return fromstate;
+};
+
+NodeMap Map::generate_scores()
+{
+   NodeMap nm;
+   std::vector<int> visited;
+   generate_scores(&visited, &nm, goal, 0);
+   return nm;
+}
+
+void Map::generate_scores(std::vector<int> *visited, NodeMap *nm, int state, int score)
+{
+  if(std::find(visited->begin(), visited->end(), state) != visited->end()) return;
+  visited->push_back(state);
+  //
+  // Add it to the map if it doesn't exist
+  //
+  if(nm->find(state) == nm->end())
+    nm->emplace(state, Node(_width, state, std::numeric_limits<int>::max(), available_actions(state)));
+
+  //
+  // Set the minimum number of moves to the goal
+  //
+  if(nm->at(state).cost() > score)
+    nm->at(state).cost(score);
+  //
+  // Walk depth first in each direction, adding to the number of moves it takes
+  // to reach the goal
+  //
+  for(DIRECTION d : available_actions(state))
+    generate_scores(visited, nm, tostate(state, d), score+1);
+
+  visited->pop_back();
+}
+*/
