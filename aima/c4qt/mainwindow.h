@@ -12,11 +12,12 @@
 namespace Ui {
 class SquareWidget : public QWidget {
 public:
-    SquareWidget(Map *m, std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount, int row, int col);
+    SquareWidget(Map *m, AI *ai, std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount, int row, int col);
     void redraw_if(int current_location);
 protected:
     void paintEvent(QPaintEvent*);
     Map *m;
+    AI  *ai;
     std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount;
     int row, col;
 };

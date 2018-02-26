@@ -89,8 +89,8 @@ public:
 
   Node &operator[](int state) {return _map.at(state); }
 
-  std::vector<int> adjacent_nodes() { return adjacent_nodes(_current_state); }
-  std::vector<int> adjacent_nodes(int whichstate) { return _map.at(whichstate).adjacent_nodes(); }
+//  std::vector<int> adjacent_nodes() { return adjacent_nodes(_current_state); }
+//  std::vector<int> adjacent_nodes(int whichstate) { return _map.at(whichstate).adjacent_nodes(); }
 
   const std::vector<DirectionAndState> &legalmoves() const { return _map.at(_current_state).legalmoves(); }
 
@@ -106,6 +106,7 @@ public:
   bool exists(int state) const { return _map.find(state) != _map.end(); }
   bool empty() const { return _map.empty(); }
   bool valid() const { return !empty() && _current_state != -1; }
+  bool uncharted() const { return _map.at(_current_state).uncharted(); }
 
   void move(DIRECTION d);
   void set_legal_moves(std::vector<DIRECTION> legalmoves);
@@ -117,7 +118,9 @@ public:
 
   const PossibleNode &possible(int state) const;
   int pmroot() const { return possibles_root; }
+  void reset_costs();
 
+  int manhattan_distance_to_goal();
 protected:
   //int _width;
   //int _height;
@@ -154,11 +157,14 @@ class LRTAStar : public AI
 public:
   virtual DIRECTION nextaction(std::vector<DIRECTION> legalmoves);
   virtual void atgoal(std::vector<DIRECTION> legalmoves);
+  virtual bool we_know_where_we_are() {return current_map.valid() && final_map.valid(); }
 
 protected:
   NodeMap final_map;
   NodeMap current_map;
   bool _atgoal = false;
+
+  std::queue<DIRECTION> uncharted_travel;
 
   //
   // The methods that try to figure out where we are
@@ -172,7 +178,9 @@ protected:
   DIRECTION move_to_closest_unmapped_node();
 
   Node &current_state() { return current_map[current_map.current_state()]; }
-  Node &final_state() { return final_map[final_map.current_state()]; }
+  Node &final_current_state() { return final_map[final_map.current_state()]; }
+  Node &previous_state() { return current_map[current_map.previous_state()]; }
+  Node &final_previous_state() { return final_map[final_map.previous_state()]; }
   void update_previous_location_costs();
   int node_cost(int whichstate);
 };

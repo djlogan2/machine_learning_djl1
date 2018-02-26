@@ -1,6 +1,8 @@
 #include "lrtastar.h"
 
 #include <algorithm>
+#include <iostream>
+#include <unordered_map>
 
 Square& Square::adjust(DIRECTION d, int howmany) {
   switch(d) {
@@ -39,14 +41,17 @@ Square Square::move(DIRECTION d, int howmany) const {
 
 bool LRTAStar::we_are_where_we_think_we_are() {
   if(final_map.empty()) return true;
+  if(current_state().uncharted()) return true;
   if(!final_map.valid()) return false;
-  if(!final_state().moves_match(current_state().legalmoves2()))
-    return false;
-  return true;
+  if(final_current_state().moves_match(current_state().legalmoves2())) return true;
+  return false;
 }
 
 DIRECTION LRTAStar::traveling_to_nearest_uncharted_territory() {
-  return STOP;
+  if(!uncharted_travel.size()) return STOP;
+  DIRECTION d = uncharted_travel.front();
+  uncharted_travel.pop();
+  return d;
 }
 
 DIRECTION LRTAStar::lowest_combined_cost_action() {
@@ -56,29 +61,21 @@ DIRECTION LRTAStar::lowest_combined_cost_action() {
     for(DirectionAndState lm : final_map.legalmoves())
       if(final_map.exists(lm.second))
         costs[lm.first] = final_map[lm.second].cost();
-      else
-        costs[lm.first] = 0;
       
   for(DirectionAndState lm : current_map.legalmoves())
-    if(current_map.exists(lm.second))
-      costs[lm.first] += current_map[lm.second].cost();
-    else
-      costs[lm.first] += 0; // This should be useless.
-
-  //int cost = std::numeric_limits<int>::max();
-  //DIRECTION dir = STOP;
+    if(costs[lm.first] != std::numeric_limits<int>::max()) {
+      if(current_map.exists(lm.second) && costs.find(lm.first) != costs.end())
+        costs[lm.first] += current_map[lm.second].cost();
+    };
 
   auto it = std::min_element(costs.begin(), costs.end(),
         [](const DirectionAndState &a, const DirectionAndState &b) -> bool {return a.second < b.second; }
   );
-  return it->first;
 
-//  for(auto it = costs.begin() ; it != costs.end() ; ++it)
-//    if(cost > it->second) {
-//      cost = it->second;
-//      dir = it->first;
-//    };
-//  return dir;
+  if(it == costs.end())
+    return current_state().legalmoves().at(0).first; // If we don't have any good costs, just return the first available
+  else
+    return it->first;
 }
 
 DIRECTION LRTAStar::find_ourselves_online() {
@@ -86,26 +83,58 @@ DIRECTION LRTAStar::find_ourselves_online() {
 }
 
 DIRECTION LRTAStar::move_to_closest_unmapped_node() {
+//
+// What I wanted was a breadth first search to find the closest
+// unmapped node. But BFS doesn't really maintain actual path
+// information. So instead I am just going to use an interative
+// depth first search. Regardless of the size of the maze, the
+// depth should be minimal if we get here. We will only get here
+// if we can't find ourselves in final_map at all. The only way to
+// have any depth at all is for the online search routine to try to
+// find itself and fail. Then we will have to travel from wherever we
+// are to the nearest uncharted node.
+//
+
   int curstate = current_map.current_state();
-  int pstate = -1;
-  std::unordered_map<int, std::vector<int>> untried;
-  std::queue<int> queue;
+  unsigned int max_depth = 1;
+  std::unordered_map<int, std::vector<DirectionAndState>> untried;
+  std::vector<DirectionAndState> vec;
 
   while(true) {
     if(current_map[curstate].uncharted()) {
+      for(auto it = vec.begin() ; it != vec.end() ; ++it)
+        uncharted_travel.push(it->first);
+      DIRECTION dir = uncharted_travel.front();
+      uncharted_travel.pop();
+      return dir;
     };
-    if(untried.find(curstate) == untried.end())
-      untried[curstate] = current_map.adjacent_nodes(curstate);
-    if(pstate != -1)
-      queue.push(pstate);
-    pstate = curstate;
-    if(untried[curstate].empty()) {
-      curstate = queue.front();
-      queue.pop();
-    } else {
-      curstate = untried[curstate].front();
-      untried[pstate].erase(untried[pstate].begin());
+
+//
+// So yea, this will result in an endless loop if there are no uncharted nodes
+// In the words of all wise souls that have come before me, "That will never happen" :)
+// If it is ever a problem for any reason, I would just add in some type of
+// hard coded depth limit like "if new max depth==100 then throw a WTF error"
+//
+doagain:
+    if(vec.size() != max_depth && untried.find(curstate) == untried.end())
+      untried[curstate] = current_map[curstate].legalmoves();
+
+    while(vec.size() == max_depth || untried[curstate].empty()) {
+      if(vec.empty()) {
+        untried.clear();
+        max_depth++;
+        curstate = current_map.current_state();
+        goto doagain;
+      };
+      DirectionAndState ds = vec.back();
+      vec.pop_back();
+      curstate = ds.second;
     };
+
+    DirectionAndState newstate = untried[curstate].front();
+    untried[curstate].erase(untried[curstate].begin());
+    vec.push_back(DirectionAndState(newstate.first, curstate));
+    curstate = newstate.second;
   };
 }
 
@@ -129,7 +158,11 @@ DIRECTION LRTAStar::nextaction(std::vector<DIRECTION> legalmoves) {
     return TELEPORT;
   };
 
-  current_map.set_legal_moves(legalmoves);
+  int uncharted = false;
+  if(current_map.previous_state() == -1 || current_map.uncharted()) {
+    current_map.set_legal_moves(legalmoves);
+    uncharted = true;
+  };
   //
   // If we are currently traveling to an uncharted node,
   //   just continue to go there.
@@ -142,13 +175,14 @@ DIRECTION LRTAStar::nextaction(std::vector<DIRECTION> legalmoves) {
   //
   // Otherwise, return the LRTA* action
   //
-  if(dir == STOP && (final_map.empty() || !final_map.valid())) {
+  if(dir == STOP && (final_map.empty() || final_map.valid())) {
     if(we_are_where_we_think_we_are()) {
       if(current_map.previous_state() != -1)
         update_previous_location_costs();
       dir = lowest_combined_cost_action();
     } else {
       final_map.set_current_state_invalid();
+      current_map.reset_costs();
       dir = STOP; // Have no direction if we don't know where we are
     };
   };
@@ -161,7 +195,7 @@ DIRECTION LRTAStar::nextaction(std::vector<DIRECTION> legalmoves) {
   //   offline depth first search, then again, return
   //   the best cost move
   //
-  if(dir == STOP && we_can_find_ourselves_offline()) {
+  if(dir == STOP && uncharted && we_can_find_ourselves_offline()) {
     dir = lowest_combined_cost_action();
   };
 
@@ -169,7 +203,7 @@ DIRECTION LRTAStar::nextaction(std::vector<DIRECTION> legalmoves) {
   // If we think we can find ourselves with an online search,
   //   make that move to figure out if we know where we are.
   //
-  if(dir == STOP)
+  if(dir == STOP && uncharted)
     dir = find_ourselves_online();
   //
   // If all else fails, find our way to the closest unmapped node
@@ -185,7 +219,7 @@ DIRECTION LRTAStar::nextaction(std::vector<DIRECTION> legalmoves) {
 }
 
 bool LRTAStar::we_can_find_ourselves_offline(int possible_state, int cm_state) {
-
+  //std::cout << "find ourselves, possible_state=" << possible_state << ", cm_state=" << cm_state << std::endl;
   //
   // Get the square node of the possible state we are in
   //
@@ -196,13 +230,29 @@ bool LRTAStar::we_can_find_ourselves_offline(int possible_state, int cm_state) {
   //    return success
   //
   if(node.node_location != -1) {
+    if(final_map[node.node_location].uncharted()) // It's in the final map, but we haven't actually been in that node, so it doesn't have any legal moves yet
+      return false;
+    //std::cout << "We have found our final location, setting to " << node.node_location << " and returning true" << std::endl << std::flush;
     final_map.set_current_state(node.node_location);
     return true;
   };
 
   //
+  // If we are in an uncharted node, then obviously we cannot continue to
+  //    find ourselves.
+  //
+  if(current_map[cm_state].uncharted()) {
+    //std::cout << "The current node at " << cm_state << " is uncharted, so we return false" << std::endl << std::flush;
+    return false;
+  }
+
+  //
   // If not, get the direction node from the correct child square node
   //
+  if(node.child(current_map.lmb(cm_state)) == -1) {
+    //std::cout << " There is no square node in this possibles node that matches our legal moves, so we return false" << std::endl;
+    return false;
+  };
   node = final_map.possible(node.child(current_map.lmb(cm_state)));
 
   //
@@ -211,7 +261,9 @@ bool LRTAStar::we_can_find_ourselves_offline(int possible_state, int cm_state) {
   //   we came from, and return true.
   //
   for(DirectionAndState child : node.children) {
-    if(current_map.legalmove(cm_state, child.first) && we_can_find_ourselves_offline(child.second, current_map.state_in_direction(cm_state, child.first))) {
+    //std::cout << "We are trying to move " << child.first << " from state " << cm_state << " to state " << current_map.state_in_direction(cm_state, child.first) << std::endl << std::flush;
+    if(/*current_map.legalmove(cm_state, child.first) && */ we_can_find_ourselves_offline(child.second, current_map.state_in_direction(cm_state, child.first))) {
+      //std::cout << " Moving " << child.first << " from state " << cm_state << " to state worked, so we are moving final map in the reverse direction" << std::endl << std::flush;
       final_map.move(reverse_move(child.first));
       return true;
     };
@@ -219,6 +271,7 @@ bool LRTAStar::we_can_find_ourselves_offline(int possible_state, int cm_state) {
   //
   // If we can't find any valid final map state, we return false
   //
+  //std::cout << "We were unable to find any path with possible_state=" << possible_state << " and cm_state=" << cm_state << ", so we return false" << std::endl << std::flush;
   return false;
 }
 
@@ -232,16 +285,60 @@ int LRTAStar::node_cost(int whichstate) {
 }
 
 void LRTAStar::update_previous_location_costs() {
+  std::unordered_map<DIRECTION, int> costs;
+
+  if(!previous_state().adjacent_nodes().empty()) {
+    for(DirectionAndState lm : previous_state().legalmoves()) {
+      costs[lm.first] = current_map[lm.second].cost();
+    };
+  };
+
+  if(final_map.valid()) {
+    for(DirectionAndState lm : final_previous_state().legalmoves()) {
+      costs[lm.first] += final_map[lm.second].cost();
+    };
+  };
+
   int cost = std::numeric_limits<int>::max();
-  if(current_state().adjacent_nodes().empty()) {
-    current_state().cost(1); // If we haven't traveled to any nodes, we assume the goal is one step away
-    return;
+  for(std::pair<DIRECTION, int> ucost : costs)
+    if(ucost.second < cost) cost = ucost.second;
+
+  cost++; // Assume we are one square (further) away from the goal
+  //
+  // Here, we are adding an efficiency. There is no way that the goal
+  //  is closer than the manhattan distance to the known goal, if we
+  //  are where we think we are in the final map. Thus, if the calculated
+  //  cost is less than the manhattan distance, return that instead.
+  //
+  // Also, in case it's unclear, we maintain two maps. The "final" map,
+  //  an accumulation of everything we have found and costs we have accumulated
+  //  in previous runs, and the "current" run of the nodes we are finding or
+  //  re-costing in this run. We have to keep them separate because when we
+  //  teleport, we don't know where we are, and even more importantly, it's
+  //  very probable that early on we will think we know where we are only to
+  //  realize we were wrong, and have to start over figuring out where we are.
+  //  In those cases, the current maps costs get reset to zero, and we start
+  //  the recalulations over.
+  //
+  // Otherwise, costs are calculated here, and in the "lowest cost move" method,
+  //  by adding up the final nodes cost and the current nodes cost. Any updates
+  //  to the cost are applied only to the current nodes cost. When the current map
+  //  gets merged with the final map, we add the current maps cost to the final
+  //  map. You can see these additions here as well as in the lowest cost move
+  //  method.
+  //
+  if(final_map.valid()) {
+    int distance = final_map.manhattan_distance_to_goal();
+    if(cost < distance) cost = distance;
+    cost -= final_previous_state().cost();
+    if(previous_state().cost() != cost)
+      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
+    previous_state().cost(cost);
+  } else {
+    if(previous_state().cost() != cost)
+      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
+    previous_state().cost(cost);
   };
-  for(int state : current_state().adjacent_nodes()) {
-    int nodecost = node_cost(state);
-    if(cost > nodecost) cost = nodecost;
-  };
-  current_state().cost(cost + 1);
 }
 
 void NodeMap::move(DIRECTION d) {
@@ -470,7 +567,6 @@ int NodeMap::state_in_direction(int state, DIRECTION d) const {
 }
 
 int Node::state_in_direction(DIRECTION d) const {
-  std::vector<DirectionAndState> _legalmoves_tostate;
   auto it = std::find_if(_legalmoves_tostate.begin(), _legalmoves_tostate.end(),
                          [d](const DirectionAndState &c){return c.first == d; });
   if(it == _legalmoves_tostate.end()) return -1;
@@ -483,4 +579,16 @@ std::vector<DIRECTION> Node::legalmoves2() const {
                  std::back_inserter(ret),
                  [](const DirectionAndState &lm) {return lm.first;});
   return ret;
+}
+
+void NodeMap::reset_costs() {
+  for(auto it = _map.begin() ; it != _map.end() ; ++it) it->second.cost(0);
+}
+
+int NodeMap::manhattan_distance_to_goal() {
+  if(_goal_state == -1) return 0;
+  if(_current_state == -1) return 0;
+  Square g = _map[_goal_state].square();
+  Square c = _map[_current_state].square();
+  return std::abs(g.x - c.x) + std::abs(g.y - c.y);
 }

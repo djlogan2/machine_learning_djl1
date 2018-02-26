@@ -9,6 +9,7 @@ class AI {
 public:
 //    virtual int previous_state() { return 0; }
 //    virtual int previous_action() { return 0; }
+    virtual bool we_know_where_we_are() = 0;
     virtual DIRECTION nextaction(std::vector<DIRECTION> legalmoves) = 0;
     virtual void atgoal(std::vector<DIRECTION> legalmoves) = 0;
 };

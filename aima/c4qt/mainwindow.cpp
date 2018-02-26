@@ -10,15 +10,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    ai = new LRTAStar();
+    //ai = new OnlineDFS(&m);
+
     ui->setupUi(this);
     ui->gridLayout->setSpacing(0);
     ui->gridLayout->setMargin(0);
     ui->gridLayout->setContentsMargins(0, 0, 0, 0);
     for(int r = 0 ; r < m.width() ; r++)
         for(int c = 0 ; c < m.width() ; c++)
-            ui->gridLayout->addWidget(new Ui::SquareWidget(&m, &hitcount, r, c), r, c);
-    //ai = new OnlineDFS(&m);
-    ai = new LRTAStar();
+            ui->gridLayout->addWidget(new Ui::SquareWidget(&m, ai, &hitcount, r, c), r, c);
     //answers = m.generate_scores();
     //for(auto it = answers.begin() ; it != answers.end() ; ++it)
     //  std::cout << it->second << std::endl;
@@ -34,8 +35,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-Ui::SquareWidget::SquareWidget(Map *m, std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount, int row, int col) {
+Ui::SquareWidget::SquareWidget(Map *m, AI *ai, std::unordered_map<std::array<int, 2>, int, hashing_func, key_equal_func> *hitcount, int row, int col) {
     this->m = m;
+    this->ai = ai;
     this->hitcount = hitcount;
     this->row = row;
     this->col = col;
@@ -79,7 +81,10 @@ void Ui::SquareWidget::paintEvent(QPaintEvent*) {
         painter.drawEllipse(c);
     }
     if(m->_at(row, col)) {
-        painter.setBrush(QBrush(Qt::red));
+        if(ai->we_know_where_we_are())
+          painter.setBrush(QBrush(Qt::blue));
+        else
+          painter.setBrush(QBrush(Qt::yellow));
         painter.drawEllipse(c);
     }
 }

@@ -3,3 +3,9 @@ cifar_data
 .idea
 *.png
 logs
+**/*.o
+aima/c4qt/c4qt
+.qmake.stash
+**/Makefile
+**/z
+aima/chapter4/cm
