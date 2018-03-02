@@ -331,12 +331,12 @@ void LRTAStar::update_previous_location_costs() {
     int distance = final_map.manhattan_distance_to_goal();
     if(cost < distance) cost = distance;
     cost -= final_previous_state().cost();
-    if(previous_state().cost() != cost)
-      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
+//    if(previous_state().cost() != cost)
+//      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
     previous_state().cost(cost);
   } else {
-    if(previous_state().cost() != cost)
-      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
+//    if(previous_state().cost() != cost)
+//      std::cout << "Updating cost from " << previous_state().cost() << " to " << cost << std::endl << std::flush;
     previous_state().cost(cost);
   };
 }
