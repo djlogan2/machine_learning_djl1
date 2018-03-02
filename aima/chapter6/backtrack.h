@@ -1,6 +1,7 @@
 #ifndef __BACKTRACK_H__
 #define __BACKTRACK_H__
 
+#include "ac3.h"
 #include "var.h"
 
 #include <array>
@@ -60,6 +61,8 @@ protected:
   std::unordered_map<std::string, Var> variables;
 
   void add_variables(std::array<std::string, 5> ops);
+
+  AC3 *ac3;
 };
 
 #endif // __BACKTRACK_H__

@@ -12,8 +12,11 @@
 class AC3 {
 public:
   AC3(std::string s1, std::string s2, std::string s3);
+  AC3(std::unordered_map<std::string, Var> &variables, const std::vector<std::array<std::string, 5>> &ops);
   bool run();
   void print_variables();
+  const Var &variable(std::string varname) const { return variables.at(varname); }
+  void set_variable(std::string varname, const Var &v) { variables.at(varname) = v; }
 
 protected:
   std::unordered_map<std::string, Var> variables;

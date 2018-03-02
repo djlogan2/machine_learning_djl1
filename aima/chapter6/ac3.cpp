@@ -123,6 +123,39 @@ AC3::AC3(std::string s1, std::string s2, std::string s3) {
   variables.at(std::string(1,s3.back())) != Var(0);
 }
 
+AC3::AC3(std::unordered_map<std::string, Var> &variables, const std::vector<std::array<std::string, 5>> &opslist) {
+  this->variables = variables;
+  std::vector<std::string> letters;
+  std::string last_carry;
+  for(std::array<std::string, 5> ops : opslist) {
+    //
+    // For each of the three letters, we store them in the letters vector if we don't already
+    //   have them.
+    //
+    for(int x = 0 ; x < 3 ; x++)
+      if(ops[x].size() == 1 && std::find(letters.begin(), letters.end(), ops[x]) == letters.end())
+        letters.push_back(ops[x]);
+    uniqify_ops(ops);
+    for(int y = 0 ; y < 5 ; y++)
+      for(int z = y+1 ; z < 5 ; z++)
+        if(y != z) add_both_calculation_constraints(ops[y], ops[z], ops);
+    last_carry = ops[3] = ops[4];
+    ops[4] = new_temporary('C');
+  };
+  variables.at(last_carry) == Var(0);
+
+
+  //
+  // Lastly, we now have the vector of unique letters. Add them all in as unique
+  //
+  for(int x = 0 ; x < letters.size() ; x++) {
+    variables.emplace(letters[x], Var(letters[x], {0,1,2,3,4,5,6,7,8,9}));
+    for(int y = x + 1 ; y < letters.size() ; y++) {
+      add_both_not_equal_constraints(letters[x], letters[y]);
+    };
+  };
+}
+
 bool AC3::run() {
   std::vector<std::pair<std::string, std::string>> queue;
 

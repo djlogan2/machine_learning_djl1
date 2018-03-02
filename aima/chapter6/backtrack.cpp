@@ -10,6 +10,7 @@ void Backtrack::add_variables(std::array<std::string, 5> ops) {
 }
 
 Backtrack::Backtrack(std::string s1, std::string s2, std::string s3) {
+  std::vector<std::array<std::string, 5>> opslist;
   int temp = 0;
   variables.emplace("ZERO", Var(0));
   std::vector<std::string> letters;
@@ -37,6 +38,7 @@ Backtrack::Backtrack(std::string s1, std::string s2, std::string s3) {
    
     add_variables(ops); 
     consistency_map.push_back(new CalculationConsistency(ops));
+    opslist.push_back(ops);
 
     ops[3] = ops[4];
     ops[4] = "C" + std::to_string(temp++);
@@ -49,6 +51,7 @@ Backtrack::Backtrack(std::string s1, std::string s2, std::string s3) {
   variables.at(std::string(1,s3.back())) != Var(0);
 
   consistency_map.push_back(new NotEqualConsistency(letters));
+  ac3 = new AC3(variables, opslist);
 }
 
 bool Backtrack::solve(std::vector<std::string> &vnames, std::unordered_map<std::string, Var> solvemap) {
@@ -72,20 +75,23 @@ bool Backtrack::solve(std::vector<std::string> &vnames, std::unordered_map<std::
 }
 
 bool Backtrack::solve() {
+  ac3->run(); // Do the initial set of consistency checks
+              // It may solve it, disprove it, or redue the
+              // domains of the variables0
+
   std::vector<std::string> vnames;
   std::unordered_map<std::string, Var> solvemap;
   solvemap.emplace("ZERO", Var(0));
   for(auto it = variables.begin() ; it != variables.end() ; ++it)
-    if(it->first != "ZERO")
+    if(it->first != "ZERO") {
       vnames.push_back(it->first);
-  variables.at("m") = Var(1);
-  variables.at("o") = Var(0);
-  variables.at("s") = Var(9);
+      variables.at(it->first) = ac3->variable(it->first);
+    };
   return solve(vnames, solvemap);
 }
 
 void Backtrack::print_variables(const std::unordered_map<std::string, Var> &vars) const {
   for(auto it = vars.begin() ; it != vars.end() ; ++it) {
-    std::cout << it->second << std::endl << std::flush;
+    std::cout << it->first << ": " << it->second << std::endl << std::flush;
   };
 }

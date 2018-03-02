@@ -9,7 +9,7 @@ int main() {
   //if(!ac3.run())
   //  std::cout << "No solution" << std::endl;
   //ac3.print_variables();
-  Backtrack bt("send", "more", "money");  
+  Backtrack bt("two", "two", "four");  
   bt.solve();
   bt.print_variables();
 //  std::cout << "---- Final variables ----" << std::endl << std::flush;
