@@ -25,7 +25,7 @@ public:
   Equal(std::string k1, std::string k2) { this->k1 = k1 ; this->k2 = k2; }
   virtual bool changed(std::unordered_map<std::string, Var> &variables) {
     bool c = (variables.at(k1) == variables.at(k2));
-    std::cout << "Equal[" << k1 << ',' << k2 << "]=" << c << ' ' << variables.at(k1) << ',' << variables.at(k2) << std::endl << std::flush;
+    //std::cout << "Equal[" << k1 << ',' << k2 << "]=" << c << ' ' << variables.at(k1) << ',' << variables.at(k2) << std::endl << std::flush;
     return c;
   };
 protected:
@@ -38,7 +38,7 @@ public:
   NotEqual(std::string k1, std::string k2) { this->k1 = k1 ; this->k2 = k2; }
   virtual bool changed(std::unordered_map<std::string, Var> &variables) {
     bool c = variables.at(k1) != variables.at(k2);
-    std::cout << "NotEqual[" << k1 << ',' << k2 << "]=" << c << ' ' << variables.at(k1) << ',' << variables.at(k2) << std::endl << std::flush;
+    //std::cout << "NotEqual[" << k1 << ',' << k2 << "]=" << c << ' ' << variables.at(k1) << ',' << variables.at(k2) << std::endl << std::flush;
     return c;
   };
 protected:
@@ -74,9 +74,9 @@ public:
       changed = variables.at(cout) == (variables.at(o1) + variables.at(o2) + variables.at(cin) - variables.at(ans))/Var(10);
       break;
     };
-    std::cout << "Calculation[" << change << "]=" << changed;
-    for(std::string s : ops) std::cout << ',' << variables.at(s);
-    std::cout << std::endl << std::flush;
+    //std::cout << "Calculation[" << change << "]=" << changed;
+    //for(std::string s : ops) std::cout << ',' << variables.at(s);
+    //std::cout << std::endl << std::flush;
     return changed;
   };
 protected:

@@ -11,10 +11,10 @@ std::string AC3::add_new_equal_constraint(std::string op) {
   if(op == "ZERO") return "ZERO";
   std::string tvar1 = "T" + std::to_string(temp++);
   std::string tvar2 = "T" + std::to_string(temp++);
-  std::cout << "Adding equal constraint [" << op << ',' << tvar1 << ']' << std::endl;
-  std::cout << "Adding equal constraint [" << tvar1 << ',' << tvar2 << ']' << std::endl;
-  std::cout << "Adding equal constraint [" << tvar1 << ',' << op << ']' << std::endl;
-  std::cout << "Adding equal constraint [" << tvar2 << ',' << tvar1 << ']' << std::endl;
+  //std::cout << "Adding equal constraint [" << op << ',' << tvar1 << ']' << std::endl;
+  //std::cout << "Adding equal constraint [" << tvar1 << ',' << tvar2 << ']' << std::endl;
+  //std::cout << "Adding equal constraint [" << tvar1 << ',' << op << ']' << std::endl;
+  //std::cout << "Adding equal constraint [" << tvar2 << ',' << tvar1 << ']' << std::endl;
   variables.emplace(tvar1, Var(tvar1, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
   variables.emplace(tvar2, Var(tvar2, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
   constraints.emplace(make_pair(op, tvar1), new Equal(op, tvar1));
@@ -27,7 +27,7 @@ std::string AC3::add_new_equal_constraint(std::string op) {
 void AC3::add_not_equal_constraint(std::string k1, std::string k2) {
   if(constraints.find(make_pair(k1, k2)) != constraints.end())
     k2 = add_new_equal_constraint(k2);
-  std::cout << "Adding not equal constraint [" << k1 << ',' << k2 << ']' << std::endl;
+  //std::cout << "Adding not equal constraint [" << k1 << ',' << k2 << ']' << std::endl;
   constraints.emplace(make_pair(k1, k2), new NotEqual(k1, k2));
 }
 
@@ -46,8 +46,8 @@ void AC3::add_calculation_constraint(std::string k1, std::string k2, std::array<
     k2 = key.second = newk2;
   };
   constraints.emplace(key, new Calculation(k1, ops));
-  std::cout << "Adding calculation constraint [" << k1 << ',' << k2 << "]=";
-  std::cout << ops[0] << '+' << ops[1] << '+' << ops[3] << '=' << ops[2] << "+10*" << ops[4] << std::endl;
+  //std::cout << "Adding calculation constraint [" << k1 << ',' << k2 << "]=";
+  //std::cout << ops[0] << '+' << ops[1] << '+' << ops[3] << '=' << ops[2] << "+10*" << ops[4] << std::endl;
 }
 
 void AC3::add_both_calculation_constraints(std::string k1, std::string k2, std::array<std::string, 5> ops) {
@@ -168,7 +168,7 @@ bool AC3::run() {
     //
     std::pair<std::string, std::string> key = queue.front();
     queue.erase(queue.begin());
-    std::cout << "Retrieved [" << key.first << ',' << key.second << "] from the queue, size=" << queue.size() << std::endl << std::flush;
+    //std::cout << "Retrieved [" << key.first << ',' << key.second << "] from the queue, size=" << queue.size() << std::endl << std::flush;
 
     //
     // If the constraint changes the domain of the variable
@@ -188,7 +188,7 @@ bool AC3::run() {
       for(auto it = constraints.begin() ; it != constraints.end() ; ++it) {
         //std::cout << "WTF? : [" << (it->first).first << ',' << (it->first).second << "],[" << key.first << ',' << key.second << ']' << std::endl << std::flush;
         if((it->first).second == key.first && (it->first).first != key.second) {
-          std::cout << "Adding constraint [" << (it->first).first << ',' << (it->first).second << "] back into the queue, size=" << queue.size() << std::endl << std::flush;
+          //std::cout << "Adding constraint [" << (it->first).first << ',' << (it->first).second << "] back into the queue, size=" << queue.size() << std::endl << std::flush;
           queue.push_back(it->first);
         };
       };
@@ -197,8 +197,8 @@ bool AC3::run() {
   return true;
 }
 
-void AC3::print_variables() {
+void AC3::print_variables() const {
   for(auto it = variables.begin() ; it != variables.end() ; ++it) {
-    std::cout << it->second << std::endl << std::flush;
+    std::cout << it->first << ": " << it->second << std::endl << std::flush;
   };
 }

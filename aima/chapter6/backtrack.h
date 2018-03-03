@@ -53,16 +53,18 @@ public:
   Backtrack(std::string s1, std::string s2, std::string s3);
   bool solve();
   void print_variables(const std::unordered_map<std::string, Var> &variables) const;
-  void print_variables() { print_variables(variables); }
+  //void print_variables() { print_variables(variables); }
 
 protected:
-  bool solve(std::vector<std::string> &vnames, std::unordered_map<std::string, Var> solvemap);
-  std::vector<Consistency *> consistency_map;
-  std::unordered_map<std::string, Var> variables;
+  bool solve(const AC3 &ac3, std::vector<std::string> &vnames);
+  std::unordered_map<std::string, Var> _variables;
+  //std::vector<Consistency *> consistency_map;
+  std::string select_unassigned_variable(const AC3 &ac3, std::vector<std::string> &vnames);
 
   void add_variables(std::array<std::string, 5> ops);
 
   AC3 *ac3;
+  std::vector<std::string> letters;
 };
 
 #endif // __BACKTRACK_H__

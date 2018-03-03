@@ -4,16 +4,15 @@
 
 void Backtrack::add_variables(std::array<std::string, 5> ops) {
   for(std::string v : ops) {
-    if(variables.find(v) == variables.end())
-      variables.emplace(v, Var(v, {0,1,2,3,4,5,6,7,8,9}));
+    if(_variables.find(v) == _variables.end())
+      _variables.emplace(v, Var(v, {0,1,2,3,4,5,6,7,8,9}));
   };
 }
 
 Backtrack::Backtrack(std::string s1, std::string s2, std::string s3) {
   std::vector<std::array<std::string, 5>> opslist;
   int temp = 0;
-  variables.emplace("ZERO", Var(0));
-  std::vector<std::string> letters;
+  _variables.emplace("ZERO", Var(0));
   std::reverse(s1.begin(), s1.end());
   std::reverse(s2.begin(), s2.end());
   std::reverse(s3.begin(), s3.end());
@@ -37,41 +36,64 @@ Backtrack::Backtrack(std::string s1, std::string s2, std::string s3) {
         letters.push_back(ops[x]);
    
     add_variables(ops); 
-    consistency_map.push_back(new CalculationConsistency(ops));
+    //consistency_map.push_back(new CalculationConsistency(ops));
     opslist.push_back(ops);
 
     ops[3] = ops[4];
     ops[4] = "C" + std::to_string(temp++);
   };
 
-  variables.at(ops[3]) == Var(0);
+  _variables.at(ops[3]) == Var(0);
 
-  variables.at(std::string(1,s1.back())) != Var(0);
-  variables.at(std::string(1,s2.back())) != Var(0);
-  variables.at(std::string(1,s3.back())) != Var(0);
+  _variables.at(std::string(1,s1.back())) != Var(0);
+  _variables.at(std::string(1,s2.back())) != Var(0);
+  _variables.at(std::string(1,s3.back())) != Var(0);
 
-  consistency_map.push_back(new NotEqualConsistency(letters));
-  ac3 = new AC3(variables, opslist);
+  //consistency_map.push_back(new NotEqualConsistency(letters));
+  ac3 = new AC3(_variables, opslist);
 }
 
-bool Backtrack::solve(std::vector<std::string> &vnames, std::unordered_map<std::string, Var> solvemap) {
+std::string Backtrack::select_unassigned_variable(const AC3 &ac3, std::vector<std::string> &vnames) {
+  int count = std::numeric_limits<int>::max();
+  int which;
+
+  for(int i = 0 ; i < vnames.size() ; i++) {
+    if(/*ac3.variable(vnames[i]).domain().size() > 1 && */ count > ac3.variable(vnames[i]).domain().size()) {
+      which = i;
+      count = ac3.variable(vnames[i]).domain().size();
+    };
+  };
+  std::string vname = vnames[which];
+  vnames.erase(vnames.begin()+which);
+  return vname;
+}
+
+bool Backtrack::solve(const AC3 &curac3, std::vector<std::string> &vnames) {
   if(vnames.empty()) {
-    for(Consistency *c : consistency_map)
-      if(!c->consistent(solvemap)) return false;
+//    for(Consistency *c : consistency_map)
+//      if(!c->consistent(solvemap)) return false;
     std::cout << "--- Solution found ---" << std::endl <<std::flush;
-    print_variables(solvemap);
+    for(std::string var : letters)
+      std::cout << var << ": " << curac3.variable(var) << std::endl;
+    //curac3.print_variables();
     return true;
   };
-  std::string vname = vnames.front();
-  vnames.erase(vnames.begin());
-  solvemap.emplace(vname, Var(0));
-  std::vector<int> domain = variables.at(vname).domain();
+  std::string vname = select_unassigned_variable(curac3, vnames);
+  std::vector<int> domain = curac3.variable(vname).domain();
+  //std::cout << "Backtrack trying " << vname << ", " << curac3.variable(vname) << std::endl << std::flush;
   for(int i  : domain) {
-    solvemap.at(vname) = Var(i);
-    solve(vnames, solvemap);
+    AC3 nextac3(curac3);
+    nextac3.set_variable(vname, Var(i));
+    //std::cout << "Backtrack trying " << vname << " value of " << i << std::endl << std::flush;
+    if(nextac3.run()) //{
+      //std::cout << "Backtrack " << vname << " worked! Nesting!" << std::endl << std::flush;
+      solve(nextac3, vnames);
+    //} else
+    //  std::cout << "Backtrack " << vname << " failed, trying next value!" << std::endl << std::flush;
   };
   vnames.push_back(vname);
-  return true;
+  //std::cout << "Backtrack " << vname << " failed, un-nesting!" << std::endl << std::flush;
+  return false;
 }
 
 bool Backtrack::solve() {
@@ -82,12 +104,10 @@ bool Backtrack::solve() {
   std::vector<std::string> vnames;
   std::unordered_map<std::string, Var> solvemap;
   solvemap.emplace("ZERO", Var(0));
-  for(auto it = variables.begin() ; it != variables.end() ; ++it)
-    if(it->first != "ZERO") {
+  for(auto it = _variables.begin() ; it != _variables.end() ; ++it)
+    if(it->first != "ZERO")
       vnames.push_back(it->first);
-      variables.at(it->first) = ac3->variable(it->first);
-    };
-  return solve(vnames, solvemap);
+  return solve(*ac3, vnames);
 }
 
 void Backtrack::print_variables(const std::unordered_map<std::string, Var> &vars) const {
