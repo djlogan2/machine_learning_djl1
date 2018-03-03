@@ -13,15 +13,16 @@ class AC3 {
 public:
   AC3(std::string s1, std::string s2, std::string s3);
   AC3(std::unordered_map<std::string, Var> &variables, const std::vector<std::array<std::string, 5>> &ops);
+  AC3(const AC3 &other) { variables = other.variables ; constraints = other.constraints; }
   bool run();
-  void print_variables();
+  void print_variables() const;
   const Var &variable(std::string varname) const { return variables.at(varname); }
   void set_variable(std::string varname, const Var &v) { variables.at(varname) = v; }
 
 protected:
   std::unordered_map<std::string, Var> variables;
-  int temp = 0;
   std::unordered_map<std::pair<std::string, std::string>, GeneralConstraint*> constraints;
+  int temp = 0;
 
   std::string add_new_equal_constraint(std::string op);
   void add_not_equal_constraint(std::string k1, std::string k2);
