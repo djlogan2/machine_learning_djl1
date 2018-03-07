@@ -4,6 +4,12 @@
 #include <cstring>
 #include <iostream>
 
+Map::Map(const std::vector<int> bytes) {
+  startover();
+  for(int i  = 0 ; i < bytes.size() ; i++)
+    _map[i] = bytes[i];
+}
+
 void Map::startover() {
   has_arrow = true;
   has_gold  = false;
@@ -16,13 +22,13 @@ void Map::startover() {
   do {
     wumpus = XY(std::rand() % SIZE, std::rand() % SIZE);
     gold   = XY(std::rand() % SIZE, std::rand() % SIZE);
-  } while(wumpus == gold || at(wumpus) || at(gold));
+  } while(wumpus == gold || wumpus == current_location || gold == current_location);
   at(wumpus, WUMPUS);
   at(gold, GOLD);
 
   for(int x = 0 ; x < SIZE ; x++)
     for(int y = 0 ; y < SIZE ; y++)
-    if(!at(XY(x,y)))
+    if(XY(x,y) != current_location && !at(XY(x,y)))
       if((double)std::rand() / (double)RAND_MAX <= 0.20)
         at(XY(x,y), PIT);
 }
@@ -44,20 +50,19 @@ Sensor Map::nothing() {
   XY cl = current_location;
   Sensor ret = (Sensor)0;
 
-  if(at(cl) == GOLD)
+  if(at(cl) == GOLD && !has_gold)
     ret = GLITTER;
 
-  for(int x = -1 ; x <= 1 ; x++)
-    for(int y = -1 ; y <= 1 ; y++)
-      if(x == 0 || y == 0) {
-        XY sq = current_location + XY(x,y);
-        if(sq.first >= 0 && sq.second >= 0 && sq.first < SIZE && sq.second < SIZE &&
-             (sq.first == cl.first || sq.second == cl.second))
-          if(at(sq) == PIT)
-            ret |= BREEZE;
-          if(at(sq) == WUMPUS)
-            ret |= STENCH;
-      };
+  
+  for(DIRECTION d = DUP ; d <= DLEFT ; d = (DIRECTION)((int)d + 1)) {
+    XY sq = current_location.adjacent(d);
+    if(sq.first >= 0 && sq.second >= 0 && sq.first < SIZE && sq.second < SIZE) {
+      if(at(sq) == PIT)
+        ret |= BREEZE;
+      if(at(sq) == WUMPUS)
+        ret |= STENCH;
+    };
+  };
   return ret;
 }
 
@@ -116,9 +121,9 @@ Sensor Map::grab() {
 void Map::test_print() {
   for(int y = 0 ; y < SIZE ; y++) {
     for(int x = 0 ; x < SIZE ; x++) {
-      if(current_location == XY(x,y))
+      if(current_location == XY(x,y)) {
         std::cout << '@';
-      else switch(at(XY(x,y))) {
+      } else switch(at(XY(x,y))) {
         case EMPTY: std::cout << '.'; break;
         case PIT: std::cout << 'P'; break;
         case WUMPUS: std::cout << 'W'; break;

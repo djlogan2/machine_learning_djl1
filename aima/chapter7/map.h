@@ -1,19 +1,85 @@
 #ifndef __MAP_H__
 #define __MAP_H__
 
+#include <iostream>
 #include <utility>
+#include <vector>
+
+enum DIRECTION {
+  DUP, DRIGHT, DDOWN, DLEFT //  specifically ordered for rotating!
+};
+
+inline DIRECTION direction_right(const DIRECTION &d) {
+  if(d == DLEFT) return DUP;
+  else return (DIRECTION)((int)d + 1);
+}
+
+inline DIRECTION direction_left(const DIRECTION &d) {
+  if(d == DUP) return DLEFT;
+  else return (DIRECTION)((int)d - 1);
+}
+
+#define SIZE 4
+#define DJL //{if(first < -1000 || second < -1000 || first >= 1000 || second >= 1000) throw "here"; }
 
 class XY : public std::pair<int, int> {
 public:
  XY() { first = second = 0; }
- XY(int x, int y) { first=x;second=y; }
+ XY(int x, int y) { first=x;second=y; DJL; }
+ friend std::ostream &operator<<(std::ostream &os, const XY &xy) {
+    os << "XY[" << xy.first << ',' << xy.second << ']';
+    return os;
+ }
  const XY &operator+=(const XY &other) {
     first += other.first;
     second += other.second;
+    DJL;
     return *this;
+  };
+ bool operator==(const XY &other) {
+    return first==other.first && second == other.second;
   };
  const XY operator+(const XY &other) {
     return XY(first+other.first, second+other.second);
+ };
+ const XY adjacent(DIRECTION d) const {
+    switch(d) {
+      case DUP: return XY(first, second-1);
+      case DDOWN: return XY(first, second+1);
+      case DLEFT: return XY(first-1, second);
+      case DRIGHT: return XY(first+1, second);
+      default: throw "What?";
+    };
+ };
+ const XY &move(DIRECTION d) {
+    switch(d) {
+      case DUP: second -= 1; break;
+      case DDOWN: second += 1; break;
+      case DLEFT: first -= 1; break;
+      case DRIGHT: first += 1; break;
+    };
+    DJL;
+    return *this;
+ };
+ const XY &reverse(DIRECTION d) {
+    switch(d) {
+      case DUP: second += 1; break;
+      case DDOWN: second -= 1; break;
+      case DLEFT: first += 1; break;
+      case DRIGHT: first -= 1; break;
+    };
+    DJL;
+    return *this;
+ };
+ const DIRECTION which_direction(const XY &other) {
+    if(first != other.first) {
+      if(second != other.second) return (DIRECTION)-1;
+      return (first < other.first ? DRIGHT : DLEFT);
+    } else if(second != other.second) {
+      if(first != other.first) return (DIRECTION)-1;
+      return (second < other.second ? DDOWN : DUP);
+    } else
+      return (DIRECTION)-1;
  };
 };
 
@@ -52,15 +118,10 @@ inline SQUARE operator&(const SQUARE &a, const SQUARE &b)
 inline SQUARE operator~(const SQUARE &a)
 { return (SQUARE)(~(int)a); }
 
-enum DIRECTION {
-  DUP, DRIGHT, DDOWN, DLEFT //  specifically ordered for rotating!
-};
-
-#define SIZE 4
-
 class Map {
 public:
   Map() { startover(); }
+  Map(const std::vector<int> bytes);
   void startover();
   Sensor move(const ACTION action);
   void test_print();
