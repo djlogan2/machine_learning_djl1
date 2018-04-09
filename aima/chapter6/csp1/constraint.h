@@ -1,6 +1,7 @@
 #ifndef __CONSTRAINT_H__
 #define __CONSTRAINT_H__
 
+#include <array>
 #include <algorithm>
 #include <iostream>
 #include <string>

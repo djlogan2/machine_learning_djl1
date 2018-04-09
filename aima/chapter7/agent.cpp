@@ -370,6 +370,8 @@ int Wumpus::get_node(const ACTION &action, std::vector<int> &previous_nodes, int
 ACTION Wumpus::ask() {
   previous_action = nodelist.at(0).best_action;
   switch(previous_action) {
+      default:
+          break;
     case FORWARD:
       current_square.move(current_direction);
       break;
@@ -428,6 +430,7 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
       os << '[' << act(it->first) << ',' << it ->second << ']';
     };
     os << ']';
+    return os;
 };
 
 Node::Node(const XY &square, DIRECTION direction, bool have_arrow) {

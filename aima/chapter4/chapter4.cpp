@@ -1,4 +1,3 @@
-#include <boost/foreach.hpp>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -45,6 +44,7 @@ class Coordinate {
     double y;
     friend std::ostream& operator<<(std::ostream& os, const Coordinate& coord) {
       os << '[' << coord.x << ',' << coord.y << ']';
+      return os;
     };
     Coordinate operator-() {
       return Coordinate(-x, -y);
@@ -107,6 +107,9 @@ class Coordinate {
       this->y = other.y;
       return *this;
     }
+    bool operator==(const int other) {
+        return (this->x == other && this->y == other);
+    }
 };
 
 template<class T, int N>
@@ -152,21 +155,16 @@ class Map {
    }};
 };
 
-class {
+bool possiblessort(std::array<Coordinate, 3>&s1, std::array<Coordinate, 3>&s2) {
   Map m;
-  public:
-    bool operator() (std::array<Coordinate, 3>*s1, std::array<Coordinate, 3>*s2)
-    {
-      if((*s1)[0] == 0) return false;
-      if((*s2)[0] == 0) return true;
-      return m.total_distance(*s1) <= m.total_distance(*s2);
-    }
-} possiblessort;
-
+  if(s1[0] == 0) return false;
+  if(s2[0] == 0) return true;
+  return m.total_distance(s1) <= m.total_distance(s2);
+}
 
 Coordinate Map::sum() {
   if(_sum.x != 0) return _sum;
-  BOOST_FOREACH(Coordinate city, cities) {
+  for(Coordinate city : cities) {
     _sum += city;
   };
   return _sum;
@@ -179,7 +177,7 @@ std::array<Coordinate, 3> Map::distance_to_zero(std::array<Coordinate, 3> airpor
   //
   // Sum the X and Y values for the closest airport to each city
   //
-  BOOST_FOREACH(Coordinate city, cities) {
+    for(Coordinate city : cities) {
     int which = closest_airport(city, airports);
     city_count[which]++;
     sum[which] += city;
@@ -202,7 +200,7 @@ std::array<Coordinate, 3> Map::distance_to_zero(std::array<Coordinate, 3> airpor
 
   do {
     outofbounds = false;
-    previous_distance = current_distance; 
+    previous_distance = current_distance;
     previous_step = current_step;
     current_step *= 2;
     for(int i = 0 ; i < 3 ; i++) {
@@ -243,9 +241,9 @@ int Map::closest_airport(Coordinate city, std::array<Coordinate, 3> airports) {
 
 double Map::total_distance(std::array<Coordinate, 3> airports) {
   double total_distance = 0.0;
-  BOOST_FOREACH(Coordinate city, cities) {
+  for(Coordinate city : cities) {
     double minimum_distance = std::numeric_limits<double>::max();
-    BOOST_FOREACH(Coordinate airport, airports) {
+    for(Coordinate airport : airports) {
       double single_distance = sqrt(pow(city.x-airport.x,2)+pow(city.y-airport.y,2));
       if(minimum_distance > single_distance) minimum_distance = single_distance;
     };
@@ -336,7 +334,7 @@ void simulated_annealing() {
     double td_current = m.total_distance(current);
     double delta_e = td_current - td_next;
 #if 1
-    std::cout << "Current: " << sarray<Coordinate, 3>(current) << ",Next: " << sarray<Coordinate, 3>(next) << 
+    std::cout << "Current: " << sarray<Coordinate, 3>(current) << ",Next: " << sarray<Coordinate, 3>(next) <<
                  ",delta: " << delta_e <<
                  ",current dist: " << m.total_distance(current) <<
                  ",next dist: " << m.total_distance(next) <<
@@ -358,7 +356,7 @@ void simulated_annealing() {
     };
   };
   std::cout << "The closest we got is :" << std::endl;
-  BOOST_FOREACH(Coordinate ap, current) {
+  for(Coordinate ap : current) {
     std::cout << ap;
   };
   std::cout << ", distance=" << m.total_distance(current);
